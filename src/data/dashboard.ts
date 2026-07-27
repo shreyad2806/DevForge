@@ -257,11 +257,6 @@ export const dashboardNavigation: DashboardNavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
   { label: "Explore Kits", href: "/explore", icon: "Compass" },
   { label: "Workspaces", href: "/workspaces", icon: "Briefcase" },
-  { label: "Favorites", href: "/favorites", icon: "Heart" },
-  { label: "Integrations", href: "/integrations", icon: "Plug" },
-  { label: "AI Assistant", href: "/ai-assistant", icon: "Sparkles" },
   { label: "Billing", href: "/billing", icon: "CreditCard" },
   { label: "Settings", href: "/settings", icon: "Settings" },
-  { label: "Documentation", href: "/docs", icon: "BookOpen" },
-  { label: "Community", href: "/community", icon: "Users" },
 ];

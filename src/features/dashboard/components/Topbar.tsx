@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Search, Gift, Bell, ChevronDown } from "lucide-react";
 
 import { dashboardUser } from "@/data/dashboard";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function Topbar({ className }: { className?: string }) {
@@ -31,9 +32,13 @@ export function Topbar({ className }: { className?: string }) {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label="Gift rewards">
+        <Link
+          href="/pricing"
+          className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+          aria-label="Gift rewards"
+        >
           <Gift className="size-5 text-muted-foreground" aria-hidden="true" />
-        </Button>
+        </Link>
 
         <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell className="size-5 text-muted-foreground" aria-hidden="true" />

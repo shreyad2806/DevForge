@@ -8,10 +8,6 @@ export interface NavItem {
 }
 
 export const mainNavigation: NavItem[] = [
-  { label: "Explore", href: "/explore" },
-  { label: "Categories", href: "/categories" },
-  { label: "Solutions", href: "/solutions" },
-  { label: "Docs", href: "/docs" },
+  { label: "Explore Kits", href: "/explore" },
   { label: "Pricing", href: "/pricing" },
-  { label: "AI Assistant", href: "/ai-assistant", badge: "New" },
 ];

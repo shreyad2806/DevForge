@@ -24,30 +24,28 @@ export interface SocialLink {
 }
 
 export const productLinks: FooterLink[] = [
-  { label: "Features", href: "/features" },
+  { label: "Features", href: "/" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Integrations", href: "/integrations" },
-  { label: "Changelog", href: "/changelog" },
+  { label: "Changelog", href: "/" },
 ];
 
 export const resourceLinks: FooterLink[] = [
-  { label: "Docs", href: "/docs" },
-  { label: "API Reference", href: "/api-reference" },
-  { label: "Blog", href: "/blog" },
-  { label: "Community", href: "/community" },
+  { label: "Docs", href: "/" },
+  { label: "API Reference", href: "/" },
+  { label: "Blog", href: "/" },
 ];
 
 export const companyLinks: FooterLink[] = [
-  { label: "About", href: "/about" },
-  { label: "Careers", href: "/careers" },
-  { label: "Contact", href: "/contact" },
-  { label: "Brand", href: "/brand" },
+  { label: "About", href: "/" },
+  { label: "Careers", href: "/" },
+  { label: "Contact", href: "/" },
+  { label: "Brand", href: "/" },
 ];
 
 export const legalLinks: FooterLink[] = [
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
-  { label: "Cookie Policy", href: "/cookies" },
+  { label: "Privacy", href: "/" },
+  { label: "Terms", href: "/" },
+  { label: "Cookie Policy", href: "/" },
 ];
 
 export const socialLinks: SocialLink[] = [

@@ -28,7 +28,7 @@ export function PopularForgeKits() {
           Popular Categories
         </h2>
         <a
-          href="/categories"
+          href="/explore"
           className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
         >
           View all
@@ -42,7 +42,7 @@ export function PopularForgeKits() {
           return (
             <HoverCard key={category.id} scale={1.02} y={-2}>
               <a
-                href={`/categories/${category.id}`}
+                href="/explore"
                 className="flex flex-col items-start rounded-xl border border-border/60 bg-background p-4 transition-colors hover:border-primary/30"
               >
                 <Icon

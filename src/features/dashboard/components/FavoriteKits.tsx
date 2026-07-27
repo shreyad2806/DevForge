@@ -37,7 +37,7 @@ interface FavoriteKitsProps {
 export function FavoriteKits({
   title = "Favorite Kits",
   kits,
-  viewAllHref = "/favorites",
+  viewAllHref = "/explore",
 }: FavoriteKitsProps) {
   return (
     <section

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Shield,
@@ -52,12 +53,23 @@ interface ForgeKitCardProps {
 }
 
 export function ForgeKitCard({ kit }: ForgeKitCardProps) {
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(kit.isFavorite ?? false);
   const Icon = iconMap[kit.icon];
+  const slug = kit.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .replace(/-kit$/, "");
 
   return (
     <HoverCard scale={1.015} y={-2} className="h-full">
-      <div className="relative flex h-full flex-col rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30">
+      <div
+        className="relative flex h-full cursor-pointer flex-col rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30"
+        role="link"
+        tabIndex={0}
+        onClick={() => router.push(`/kits/${slug}`)}
+      >
         {(kit.isPremium || kit.isPopular) && (
           <div className="absolute left-5 top-5 flex gap-1.5">
             {kit.isPremium && (
@@ -83,7 +95,10 @@ export function ForgeKitCard({ kit }: ForgeKitCardProps) {
             className="size-8"
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             aria-pressed={isFavorite}
-            onClick={() => setIsFavorite((f) => !f)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsFavorite((f) => !f);
+            }}
           >
             <Heart
               className={cn(

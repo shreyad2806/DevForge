@@ -77,7 +77,7 @@ export function CTA({ className }: { className?: string }) {
               <div className="mt-2 flex flex-col gap-3 sm:flex-row">
                 <MotionButton className="inline-block" scale={1.03} y={-1}>
                   <Link
-                    href="/get-started"
+                    href="/signup"
                     className={cn(
                       buttonVariants({ size: "lg", variant: "secondary" }),
                       "inline-flex items-center gap-2"

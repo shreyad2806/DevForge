@@ -25,7 +25,7 @@ export function ActivityFeed() {
           Activity Feed
         </h2>
         <a
-          href="/activity"
+          href="/dashboard"
           className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
         >
           View all

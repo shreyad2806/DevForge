@@ -25,7 +25,7 @@ function FooterColumn({ title, links }: FooterColumnData) {
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <ul className="flex flex-col gap-2">
         {links.map((link) => (
-          <li key={link.href}>
+          <li key={link.label}>
             <Link
               href={link.href}
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export function QuickActions() {
   return (
     <Link
-      href="/workspaces/new"
+      href="/workspaces"
       className={cn(buttonVariants({ size: "sm" }), "inline-flex items-center gap-1.5")}
     >
       <Plus className="size-4" aria-hidden="true" />

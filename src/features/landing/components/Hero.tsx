@@ -54,7 +54,7 @@ export function Hero({ className }: { className?: string }) {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <MotionButton>
                   <Link
-                    href="/get-started"
+                    href="/signup"
                     className={cn(
                       buttonVariants({ size: "lg" }),
                       "inline-flex items-center gap-2"

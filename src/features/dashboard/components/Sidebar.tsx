@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { dashboardUser, currentWorkspace, dashboardNavigation } from "@/data/dashboard";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const iconMap = {
@@ -129,9 +129,12 @@ export function Sidebar({ className }: { className?: string }) {
             </p>
           </div>
         </div>
-        <Button size="sm" className="mt-3 w-full">
+        <Link
+          href="/pricing"
+          className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full text-center")}
+        >
           Upgrade Now
-        </Button>
+        </Link>
       </div>
 
       {/* User */}

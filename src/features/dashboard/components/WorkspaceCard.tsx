@@ -32,7 +32,7 @@ export function WorkspaceCard() {
           <li key={workspace.id}>
             <HoverCard scale={1.01} y={-1}>
               <a
-                href={`/workspaces/${workspace.id}`}
+                href="/workspaces"
                 className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-muted/40"
               >
                 <div
@@ -67,7 +67,7 @@ export function WorkspaceCard() {
       </ul>
 
       <a
-        href="/workspaces/new"
+        href="/workspaces"
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border/80 bg-transparent py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
       >
         <Plus className="size-4" aria-hidden="true" />

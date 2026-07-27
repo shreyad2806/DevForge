@@ -105,7 +105,7 @@ export function Navbar({
           <ThemeToggle />
           <MotionButton>
             <Link
-              href="/sign-in"
+              href="/login"
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
             >
               Sign In
@@ -113,7 +113,7 @@ export function Navbar({
           </MotionButton>
           <MotionButton>
             <Link
-              href="/get-started"
+              href="/signup"
               className={cn(buttonVariants({ variant: "default", size: "sm" }))}
             >
               Get Started
@@ -218,7 +218,7 @@ export function Navbar({
               </div>
               <MotionButton className="w-full">
                 <Link
-                  href="/sign-in"
+                  href="/login"
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     buttonVariants({ variant: "outline" }),
@@ -230,7 +230,7 @@ export function Navbar({
               </MotionButton>
               <MotionButton className="w-full">
                 <Link
-                  href="/get-started"
+                  href="/signup"
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     buttonVariants({ variant: "default" }),
