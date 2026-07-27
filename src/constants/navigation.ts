@@ -10,4 +10,5 @@ export interface NavItem {
 export const mainNavigation: NavItem[] = [
   { label: "Explore Kits", href: "/explore" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Dashboard", href: "/dashboard" },
 ];

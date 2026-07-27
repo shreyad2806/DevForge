@@ -24,12 +24,20 @@ import { mainNavigation, type NavItem } from "@/constants/navigation";
 interface NavbarProps {
   className?: string;
   items?: NavItem[];
+  user?: { id: string } | null;
 }
 
 function isActive(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
   if (href === "/") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function getNavHref(item: NavItem, user: { id: string } | null) {
+  if (item.label === "Explore Kits" || item.label === "Dashboard") {
+    return user ? item.href : "/login";
+  }
+  return item.href;
 }
 
 function Logo() {
@@ -51,6 +59,7 @@ function Logo() {
 export function Navbar({
   className,
   items = mainNavigation,
+  user = null,
 }: NavbarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -74,12 +83,13 @@ export function Navbar({
         {/* Desktop navigation */}
         <ul className="hidden items-center gap-0.5 lg:flex">
           {items.map((item) => {
-            const active = isActive(pathname, item.href);
+            const href = getNavHref(item, user);
+            const active = isActive(pathname, href);
 
             return (
-              <li key={item.href}>
+              <li key={item.label}>
                 <Link
-                  href={item.href}
+                  href={href}
                   className={cn(
                     "relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     active
@@ -169,12 +179,13 @@ export function Navbar({
               }}
             >
               {items.map((item) => {
-                const active = isActive(pathname, item.href);
+                const href = getNavHref(item, user);
+                const active = isActive(pathname, href);
                 const Icon = item.icon;
 
                 return (
                   <motion.li
-                    key={item.href}
+                    key={item.label}
                     variants={{
                       hidden: { opacity: 0, x: 16 },
                       visible: {
@@ -188,7 +199,7 @@ export function Navbar({
                     }}
                   >
                     <Link
-                      href={item.href}
+                      href={href}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",

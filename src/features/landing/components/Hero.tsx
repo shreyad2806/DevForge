@@ -16,7 +16,13 @@ const stats = [
   { label: "20+\nContributors", icon: GitBranch },
 ];
 
-export function Hero({ className }: { className?: string }) {
+export function Hero({
+  className,
+  user,
+}: {
+  className?: string;
+  user?: { id: string } | null;
+}) {
   return (
     <section
       className={cn(
@@ -66,7 +72,7 @@ export function Hero({ className }: { className?: string }) {
                 </MotionButton>
                 <MotionButton>
                   <Link
-                    href="/explore"
+                    href={user ? "/explore" : "/login"}
                     className={cn(buttonVariants({ size: "lg", variant: "secondary" }))}
                   >
                     Explore Kits

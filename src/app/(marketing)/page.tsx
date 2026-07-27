@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import { Hero } from "@/features/landing/components/Hero";
 import { TrustedBy } from "@/features/landing/components/TrustedBy";
 import { ProblemSolution } from "@/features/landing/components/ProblemSolution";
@@ -8,10 +9,14 @@ import { Pricing } from "@/features/landing/components/Pricing";
 import { Testimonials } from "@/features/landing/components/Testimonials";
 import { CTA } from "@/features/landing/components/CTA";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const authUser = user ? { id: user.id } : null;
+
   return (
     <>
-      <Hero />
+      <Hero user={authUser} />
       <TrustedBy />
       <ProblemSolution />
       <ForgeKitGrid />
@@ -19,7 +24,7 @@ export default function Home() {
       <Features />
       <Pricing />
       <Testimonials />
-      <CTA />
+      <CTA user={authUser} />
     </>
   );
 }

@@ -18,7 +18,12 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    response.cookies.getAll().forEach(({ name, value }) => {
+      redirectResponse.cookies.set(name, value);
+    });
+    return redirectResponse;
   }
 
   return response;

@@ -1,14 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Gift, Bell, ChevronDown } from "lucide-react";
+import { Search, Gift, Bell, ChevronDown, LogOut } from "lucide-react";
 
 import { dashboardUser } from "@/data/dashboard";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { logout } from "@/app/logout/actions";
 import { cn } from "@/lib/utils";
 
 export function Topbar({ className }: { className?: string }) {
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch (error) {
+      if (error instanceof Error && error.message?.includes("NEXT_REDIRECT")) {
+        return;
+      }
+      throw error;
+    }
+  }
+
   return (
     <header
       className={cn(
@@ -47,20 +65,36 @@ export function Topbar({ className }: { className?: string }) {
           </span>
         </Button>
 
-        <Button
-          variant="ghost"
-          className="flex items-center gap-2 px-2 hover:bg-accent"
-          aria-label="Profile menu"
-        >
-          <div
-            className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white"
-            style={{ backgroundColor: dashboardUser.avatarColor }}
-            aria-hidden="true"
-          >
-            {dashboardUser.initials}
-          </div>
-          <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 px-2 hover:bg-accent"
+                aria-label="Profile menu"
+              >
+                <div
+                  className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white"
+                  style={{ backgroundColor: dashboardUser.avatarColor }}
+                  aria-hidden="true"
+                >
+                  {dashboardUser.initials}
+                </div>
+                <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => {
+                handleLogout();
+              }}
+            >
+              <LogOut className="mr-2 size-4" aria-hidden="true" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

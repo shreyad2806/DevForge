@@ -60,7 +60,13 @@ function CodeCube({ className }: { className?: string }) {
   );
 }
 
-export function CTA({ className }: { className?: string }) {
+export function CTA({
+  className,
+  user,
+}: {
+  className?: string;
+  user?: { id: string } | null;
+}) {
   return (
     <section className={cn("w-full bg-background py-24 lg:py-32", className)}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 xl:px-12">
@@ -90,7 +96,7 @@ export function CTA({ className }: { className?: string }) {
 
                 <MotionButton className="inline-block" scale={1.03} y={-1}>
                   <Link
-                    href="/explore"
+                    href={user ? "/explore" : "/login"}
                     className={cn(
                       buttonVariants({ size: "lg", variant: "outline" }),
                       "inline-flex border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
