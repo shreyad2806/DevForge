@@ -75,7 +75,6 @@ export function Navbar({
         <ul className="hidden items-center gap-0.5 lg:flex">
           {items.map((item) => {
             const active = isActive(pathname, item.href);
-            const Icon = item.icon;
 
             return (
               <li key={item.href}>
@@ -89,13 +88,11 @@ export function Navbar({
                   )}
                   aria-current={active ? "page" : undefined}
                 >
-                  {Icon && <Icon className="size-4" aria-hidden="true" />}
                   {item.label}
-                  {active && (
-                    <span
-                      className="absolute bottom-1 left-3 right-3 h-px bg-primary"
-                      aria-hidden="true"
-                    />
+                  {item.badge && (
+                    <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-primary">
+                      {item.badge}
+                    </span>
                   )}
                 </Link>
               </li>

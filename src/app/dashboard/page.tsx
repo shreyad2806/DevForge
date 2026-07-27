@@ -1,0 +1,70 @@
+import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
+import { QuickActions } from "@/features/dashboard/components/QuickActions";
+import { StatsCards } from "@/features/dashboard/components/StatsCards";
+import { RecentForgeKits } from "@/features/dashboard/components/RecentForgeKits";
+import { PopularForgeKits } from "@/features/dashboard/components/PopularForgeKits";
+import { WorkspaceCard } from "@/features/dashboard/components/WorkspaceCard";
+import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
+import { FadeInView } from "@/components/motion/FadeInView";
+
+export default function DashboardPage() {
+  return (
+    <div className="p-6 lg:p-8">
+      <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
+        <FadeInView direction="up" distance={16} duration={0.4}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <DashboardHeader
+              name="Shreya"
+              subtitle="Here's what's happening in your workspace today."
+            />
+            <QuickActions />
+          </div>
+        </FadeInView>
+
+        <FadeInView direction="up" distance={16} duration={0.4} delay={0.05}>
+          <StatsCards />
+        </FadeInView>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="flex flex-col gap-6 lg:col-span-2">
+            <FadeInView
+              direction="up"
+              distance={16}
+              duration={0.4}
+              delay={0.1}
+            >
+              <RecentForgeKits />
+            </FadeInView>
+            <FadeInView
+              direction="up"
+              distance={16}
+              duration={0.4}
+              delay={0.15}
+            >
+              <PopularForgeKits />
+            </FadeInView>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <FadeInView
+              direction="up"
+              distance={16}
+              duration={0.4}
+              delay={0.1}
+            >
+              <WorkspaceCard />
+            </FadeInView>
+            <FadeInView
+              direction="up"
+              distance={16}
+              duration={0.4}
+              delay={0.15}
+            >
+              <ActivityFeed />
+            </FadeInView>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { Footer } from "@/components/footer/Footer";
-import { Layout } from "@/components/layout/Layout";
-import { Navbar } from "@/components/navbar/Navbar";
-import { PageTransition } from "@/components/motion/PageTransition";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 import "./globals.css";
@@ -50,13 +46,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-screen flex flex-col">
+      <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <Navbar />
-          <PageTransition>
-            <Layout>{children}</Layout>
-          </PageTransition>
-          <Footer />
+          <div className="flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
       </body>
     </html>
