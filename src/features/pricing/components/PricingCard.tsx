@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Box, Zap, Users, Check } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,15 @@ interface PricingCardProps {
 export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
   const Icon = iconMap[plan.icon as keyof typeof iconMap];
   const price = isYearly ? plan.yearlyPrice : plan.price;
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    if (plan.id === "free") {
+      router.push(plan.href);
+    } else {
+      router.push("/checkout");
+    }
+  };
 
   return (
     <HoverCard className="h-full" scale={1.01} y={-4}>
@@ -84,17 +93,13 @@ export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
         </ul>
 
         <div className="mt-8">
-          <Link
-            href={plan.href}
-            className={cn(
-              buttonVariants({
-                variant: plan.highlighted ? "default" : "outline",
-              }),
-              "w-full justify-center rounded-lg"
-            )}
+          <Button
+            variant={plan.highlighted ? "default" : "outline"}
+            className="w-full justify-center rounded-lg"
+            onClick={handleCheckout}
           >
             {plan.cta}
-          </Link>
+          </Button>
         </div>
       </div>
     </HoverCard>

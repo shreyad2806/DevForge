@@ -4,6 +4,7 @@ import type { ForgeKit } from "@/data/forge-kits";
 import { createClient } from "@/lib/supabase/server";
 import { fetchExploreKits } from "@/lib/data/forge-kits";
 import { ExploreContent } from "@/features/explore/components/ExploreContent";
+import { isPro } from "@/services/subscription";
 
 function ErrorState({ message }: { message: string }) {
   return (
@@ -37,20 +38,23 @@ export default async function ExplorePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let favoriteIds: string[] = [];
-  if (user) {
-    const { data } = await supabase
-      .from("favorites")
-      .select("kit_id")
-      .eq("user_id", user.id);
-    favoriteIds = data?.map((row) => String(row.kit_id)) ?? [];
-  }
+  const [userIsPro, favoriteIds] = await Promise.all([
+    isPro(supabase, user?.id ?? ""),
+    user
+      ? supabase
+          .from("favorites")
+          .select("kit_id")
+          .eq("user_id", user.id)
+          .then(({ data }) => data?.map((row) => String(row.kit_id)) ?? [])
+      : Promise.resolve([]),
+  ]);
 
   return (
     <ExploreContent
       kits={kits}
       initialFavoriteIds={favoriteIds}
       userId={user?.id}
+      isPro={userIsPro}
     />
   );
 }

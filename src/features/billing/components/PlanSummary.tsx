@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-import { billingSummary } from "@/data/invoices";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FadeInView } from "@/components/motion/FadeInView";
 import { createClient } from "@/lib/supabase/client";
+import { getSubscription } from "@/services/subscription";
 
 function formatDate(date?: string) {
-  if (!date) return billingSummary.nextBillingDate;
+  if (!date) return "—";
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -17,11 +18,11 @@ function formatDate(date?: string) {
 }
 
 export function PlanSummary() {
-  const [plan, setPlan] = useState(billingSummary.plan);
-  const [status, setStatus] = useState(billingSummary.status);
-  const [price, setPrice] = useState(`${billingSummary.price} / month`);
-  const [cycle, setCycle] = useState(billingSummary.billingCycle);
-  const [nextDate, setNextDate] = useState(billingSummary.nextBillingDate);
+  const router = useRouter();
+  const [plan, setPlan] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
+  const [provider, setProvider] = useState<string>("—");
+  const [renewalDate, setRenewalDate] = useState<string>("—");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,18 +32,12 @@ export function PlanSummary() {
       const supabase = createClient();
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
-        const { data } = await supabase
-          .from("subscriptions")
-          .select("plan, status, price, billing_cycle, current_period_end")
-          .eq("user_id", auth.user.id)
-          .maybeSingle();
-
-        if (data && !cancelled) {
-          if (data.plan) setPlan(String(data.plan));
-          if (data.status) setStatus(String(data.status) as "Active" | "Inactive");
-          if (data.price) setPrice(String(data.price));
-          if (data.billing_cycle) setCycle(String(data.billing_cycle));
-          if (data.current_period_end) setNextDate(formatDate(String(data.current_period_end)));
+        const sub = await getSubscription(supabase, auth.user.id);
+        if (!cancelled) {
+          setPlan(sub.plan ?? "free");
+          setStatus(sub.status ?? "inactive");
+          setProvider(sub.provider ?? "—");
+          setRenewalDate(formatDate(sub.current_period_end ?? undefined));
         }
       }
       if (!cancelled) setLoading(false);
@@ -53,11 +48,10 @@ export function PlanSummary() {
   }, []);
 
   const rows = [
-    { label: "Plan", value: plan },
+    { label: "Current Plan", value: plan },
     { label: "Status", value: status, status: true },
-    { label: "Price", value: price },
-    { label: "Billing Cycle", value: cycle },
-    { label: "Next Billing Date", value: nextDate },
+    { label: "Billing Provider", value: provider },
+    { label: "Renewal Date", value: renewalDate },
   ];
 
   return (
@@ -66,27 +60,53 @@ export function PlanSummary() {
         <h2 className="text-sm font-semibold text-foreground">Plan Summary</h2>
 
         {loading && (
-          <p className="mt-3 text-xs text-muted-foreground">Loading subscription...</p>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-28 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-14 animate-pulse rounded bg-muted" />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
+          </div>
         )}
 
-        <dl className="mt-4 space-y-3">
-          {rows.map((row) => (
-            <div key={row.label} className="flex items-center justify-between">
-              <dt className="text-xs text-muted-foreground">{row.label}</dt>
-              <dd className="text-sm font-medium text-foreground">
-                {row.status ? (
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                    {row.value}
-                  </span>
-                ) : (
-                  row.value
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {!loading && (
+          <dl className="mt-4 space-y-3">
+            {rows.map((row) => (
+              <div key={row.label} className="flex items-center justify-between">
+                <dt className="text-xs text-muted-foreground">{row.label}</dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {row.status ? (
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                      {row.value}
+                    </span>
+                  ) : (
+                    row.value
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
-        <Button className="mt-5 w-full rounded-lg">Change Plan</Button>
+        <Button
+          className="mt-5 w-full rounded-lg"
+          onClick={() => {
+            if (plan === "free") router.push("/pricing");
+          }}
+        >
+          {plan === "free" ? "Upgrade" : "Manage Subscription"}
+        </Button>
       </div>
     </FadeInView>
   );

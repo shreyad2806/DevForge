@@ -7,6 +7,7 @@ import { ProfileCard } from "@/features/settings/components/ProfileCard";
 import { Preferences } from "@/features/settings/components/Preferences";
 import { ConnectedAccounts } from "@/features/settings/components/ConnectedAccounts";
 import { DangerZone } from "@/features/settings/components/DangerZone";
+import { BillingCard } from "@/features/settings/components/BillingCard";
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState("profile");
@@ -33,6 +34,7 @@ export default function SettingsPage() {
           />
           <div className="flex flex-col gap-6 lg:col-span-3">
             <ProfileCard />
+            <BillingCard />
             <Preferences />
             <ConnectedAccounts />
             <DangerZone />

@@ -64,6 +64,8 @@ interface SidebarProps {
 
 export function Sidebar({ className, user, currentWorkspace, subscriptionPlan, workspaceCount }: SidebarProps) {
   const pathname = usePathname();
+  const isPro = subscriptionPlan.toLowerCase() === "pro";
+  const planLabel = isPro ? "Pro" : subscriptionPlan;
 
   return (
     <aside
@@ -134,18 +136,18 @@ export function Sidebar({ className, user, currentWorkspace, subscriptionPlan, w
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">
-              {subscriptionPlan === "Pro" ? "You're on Pro" : "Upgrade to Pro"}
+              {isPro ? "You're on Pro" : "Upgrade to Pro"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {subscriptionPlan === "Pro"
+              {isPro
                 ? "You have access to premium kits, private workspaces and more."
                 : "Unlock premium kits, private workspaces and more."}
             </p>
           </div>
         </div>
-        {subscriptionPlan !== "Pro" && (
+        {!isPro && (
           <Link
-            href="/pricing"
+            href="/checkout"
             className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full text-center")}
           >
             Upgrade Now
@@ -178,10 +180,10 @@ export function Sidebar({ className, user, currentWorkspace, subscriptionPlan, w
             {user.email}
           </p>
           <div className="mt-0.5 flex items-center gap-2">
-            {subscriptionPlan === "Pro" ? (
+            {isPro ? (
               <Badge className="rounded-full px-1.5 py-0 text-[10px]">Pro</Badge>
             ) : (
-              <span className="text-xs text-muted-foreground">{subscriptionPlan}</span>
+              <span className="text-xs text-muted-foreground">{planLabel}</span>
             )}
             <span className="text-xs text-muted-foreground">
               · {workspaceCount} workspaces

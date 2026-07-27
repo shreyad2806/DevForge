@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface WorkspaceCardProps {
   workspaces: Workspace[];
+  isPro?: boolean;
 }
 
-export function WorkspaceCard({ workspaces }: WorkspaceCardProps) {
+export function WorkspaceCard({ workspaces, isPro = false }: WorkspaceCardProps) {
   return (
     <section
       className="rounded-2xl border border-border/60 bg-card p-5"
@@ -75,6 +76,11 @@ export function WorkspaceCard({ workspaces }: WorkspaceCardProps) {
         ))}
       </ul>
 
+      {isPro && (
+        <p className="mt-4 text-xs text-primary">
+          Pro: unlimited workspaces enabled.
+        </p>
+      )}
       <a
         href="/workspaces"
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border/80 bg-transparent py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"

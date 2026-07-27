@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSubscription } from "@/services/subscription";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import type { DashboardUser } from "@/data/dashboard";
@@ -77,7 +78,7 @@ export async function DashboardShell({
     if (userId) {
       const [
         { data: rows },
-        { data: rawSubscription },
+        subscription,
         { count: wsCount },
       ] = await Promise.all([
         supabase
@@ -86,11 +87,7 @@ export async function DashboardShell({
           .eq("user_id", userId)
           .eq("current", true)
           .limit(1),
-        supabase
-          .from("subscriptions")
-          .select("plan")
-          .eq("user_id", userId)
-          .maybeSingle(),
+        getSubscription(supabase, userId),
         supabase
           .from("workspaces")
           .select("id", { count: "exact", head: true })
@@ -112,8 +109,7 @@ export async function DashboardShell({
         };
       }
 
-      const subscription = rawSubscription as Record<string, unknown> | null;
-      subscriptionPlan = String(subscription?.plan ?? "Free");
+      subscriptionPlan = String(subscription.plan ?? "Free");
     }
   } catch {
     // leave fallbacks

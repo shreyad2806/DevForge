@@ -40,12 +40,14 @@ interface ExploreContentProps {
   kits: ForgeKit[];
   initialFavoriteIds: string[];
   userId?: string;
+  isPro?: boolean;
 }
 
 export function ExploreContent({
   kits,
   initialFavoriteIds,
   userId,
+  isPro = false,
 }: ExploreContentProps) {
   const [allKits] = useState(kits);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(
@@ -167,6 +169,7 @@ export function ExploreContent({
                 <KitGrid
                   kits={paginatedKits}
                   onToggleFavorite={handleFavoriteToggle}
+                  isPro={isPro}
                 />
                 {totalPages > 1 && (
                   <Pagination

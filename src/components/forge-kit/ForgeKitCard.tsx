@@ -51,9 +51,10 @@ const iconMap = {
 interface ForgeKitCardProps {
   kit: ForgeKit;
   onToggle?: () => void;
+  isPro?: boolean;
 }
 
-export function ForgeKitCard({ kit, onToggle }: ForgeKitCardProps) {
+export function ForgeKitCard({ kit, onToggle, isPro = false }: ForgeKitCardProps) {
   const router = useRouter();
   const [internalFavorite, setInternalFavorite] = useState(
     kit.isFavorite ?? false
@@ -74,7 +75,8 @@ export function ForgeKitCard({ kit, onToggle }: ForgeKitCardProps) {
         {(kit.isPremium || kit.isPopular) && (
           <div className="absolute left-5 top-5 flex gap-1.5">
             {kit.isPremium && (
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                {!isPro && <Lock className="size-3" aria-hidden="true" />}
                 Premium
               </span>
             )}

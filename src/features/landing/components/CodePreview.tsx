@@ -39,6 +39,7 @@ interface CodePreviewProps {
   code?: string;
   tabs?: string[];
   activeTab?: string;
+  isLocked?: boolean;
 }
 
 function FileTreeItem({
@@ -83,6 +84,7 @@ export function CodePreview({
   code,
   tabs = ["Description", "Files", "Example", "API Reference", "Reviews"],
   activeTab = "Example",
+  isLocked = false,
 }: CodePreviewProps) {
   return (
     <div
@@ -134,7 +136,7 @@ export function CodePreview({
               </div>
             </div>
           </div>
-          <Button size="sm" className="w-full sm:w-auto">
+          <Button size="sm" className="w-full sm:w-auto" disabled={isLocked}>
             Add to Workspace
           </Button>
         </div>

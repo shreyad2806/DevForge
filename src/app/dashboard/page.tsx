@@ -7,10 +7,18 @@ import { WorkspaceCard } from "@/features/dashboard/components/WorkspaceCard";
 import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
 import { FadeInView } from "@/components/motion/FadeInView";
 import { fetchDashboardData } from "@/lib/data/dashboard";
+import { createClient } from "@/lib/supabase/server";
+import { isPro } from "@/services/subscription";
 
 export default async function DashboardPage() {
   const { userName, stats, recentKits, popularCategories, workspaces, activityFeed } =
     await fetchDashboardData();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userIsPro = user ? await isPro(supabase, user.id) : false;
 
   return (
     <div className="p-6 lg:p-8">
@@ -56,7 +64,7 @@ export default async function DashboardPage() {
               duration={0.4}
               delay={0.1}
             >
-              <WorkspaceCard workspaces={workspaces} />
+              <WorkspaceCard workspaces={workspaces} isPro={userIsPro} />
             </FadeInView>
             <FadeInView
               direction="up"

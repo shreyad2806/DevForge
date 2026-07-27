@@ -32,6 +32,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { fetchExploreKits, fetchForgeKitBySlug } from "@/lib/data/forge-kits";
 import type { ForgeKit } from "@/data/forge-kits";
@@ -43,6 +44,8 @@ import {
   getReviews,
 } from "@/lib/data/kit-detail";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import { isPro } from "@/services/subscription";
 
 interface KitDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -74,6 +77,13 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
   if (!kit) {
     notFound();
   }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userIsPro = await isPro(supabase, user?.id ?? "");
+  const isLocked = kit.isPremium && !userIsPro;
 
   let relatedKits: ForgeKit[] = [];
   try {
@@ -127,6 +137,17 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
           </div>
         </section>
 
+        {isLocked && (
+          <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-primary">
+            <Lock className="inline size-4 align-text-bottom" aria-hidden="true" />{" "}
+            This is a Premium kit.{" "}
+            <Link href="/checkout" className="font-semibold underline">
+              Upgrade to Pro
+            </Link>{" "}
+            to unlock documentation and downloads.
+          </div>
+        )}
+
         <Tabs defaultValue="overview" className="mt-6">
           <TabsList variant="line" className="w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -136,7 +157,9 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-6">
-            {getOverview(kit)}
+            <div className={cn("relative", isLocked && "pointer-events-none select-none blur-sm")} aria-hidden={isLocked}>
+              {getOverview(kit)}
+            </div>
           </TabsContent>
           <TabsContent value="files" className="mt-6">
             <CodePreview
@@ -148,13 +171,18 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
               fileTree={fileTree}
               code={code}
               tabs={[]}
+              isLocked={isLocked}
             />
           </TabsContent>
           <TabsContent value="example" className="mt-6">
-            {getExample(kit)}
+            <div className={cn("relative", isLocked && "pointer-events-none select-none blur-sm")} aria-hidden={isLocked}>
+              {getExample(kit)}
+            </div>
           </TabsContent>
           <TabsContent value="api" className="mt-6">
-            {getApi(kit)}
+            <div className={cn("relative", isLocked && "pointer-events-none select-none blur-sm")} aria-hidden={isLocked}>
+              {getApi(kit)}
+            </div>
           </TabsContent>
           <TabsContent value="reviews" className="mt-6">
             {getReviews(kit)}
@@ -200,6 +228,17 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
                     </div>
                   </div>
                 </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Link
+                    href={isLocked ? "/checkout" : "#"}
+                    className={cn(buttonVariants({ size: "sm" }), "w-full sm:w-auto")}
+                  >
+                    {isLocked ? "Upgrade to Download" : "Download"}
+                  </Link>
+                  <Button variant="outline" className="w-full sm:w-auto" disabled={isLocked}>
+                    Add to Workspace
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -218,7 +257,7 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
                 </div>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {relatedKits.map((related) => (
-                    <ForgeKitCard key={related.id} kit={related} />
+                    <ForgeKitCard key={related.id} kit={related} isPro={userIsPro} />
                   ))}
                 </div>
               </section>
