@@ -6,10 +6,11 @@ import {
   Upload,
   Lock,
   Mail,
+  Box,
   ArrowRight,
 } from "lucide-react";
 
-import { recentlyAddedKits } from "@/data/workspaces";
+import type { RecentKit } from "@/data/workspaces";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { FadeInView } from "@/components/motion/FadeInView";
 import { cn } from "@/lib/utils";
@@ -20,13 +21,15 @@ const iconMap = {
   Upload,
   Lock,
   Mail,
+  Box,
 };
 
 interface RecentActivityProps {
   className?: string;
+  recentlyAddedKits: RecentKit[];
 }
 
-export function RecentActivity({ className }: RecentActivityProps) {
+export function RecentActivity({ className, recentlyAddedKits }: RecentActivityProps) {
   return (
     <FadeInView
       direction="up"
@@ -56,7 +59,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
 
         <ul className="mt-4 space-y-3">
           {recentlyAddedKits.map((kit) => {
-            const Icon = iconMap[kit.icon as keyof typeof iconMap];
+            const Icon = iconMap[kit.icon as keyof typeof iconMap] ?? Box;
             return (
               <HoverCard key={kit.id} y={-1}>
                 <li className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-accent/50">

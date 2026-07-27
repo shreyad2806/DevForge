@@ -2,7 +2,7 @@
 
 import { Users, Package, Cloud, UserPlus } from "lucide-react";
 
-import { workspaceStats } from "@/data/workspaces";
+import type { WorkspaceStat } from "@/data/workspaces";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { FadeInView } from "@/components/motion/FadeInView";
 import { cn } from "@/lib/utils";
@@ -14,11 +14,15 @@ const iconMap = {
   UserPlus,
 };
 
-export function WorkspaceStats() {
+interface WorkspaceStatsProps {
+  stats: WorkspaceStat[];
+}
+
+export function WorkspaceStats({ stats }: WorkspaceStatsProps) {
   return (
     <FadeInView direction="up" distance={16} duration={0.4}>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {workspaceStats.map((stat) => {
+        {stats.map((stat) => {
           const Icon = iconMap[stat.icon as keyof typeof iconMap];
           return (
             <HoverCard scale={1.02} key={stat.id}>

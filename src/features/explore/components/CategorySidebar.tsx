@@ -1,9 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
+
 import type { ForgeKit } from "@/data/forge-kits";
 import { cn } from "@/lib/utils";
-
-const fixedCategories = ["All", "Backend", "Authentication", "Payments", "Storage", "Utility"];
 
 function countByCategory(category: string, kits: ForgeKit[]) {
   if (category === "All") return kits.length;
@@ -23,6 +23,13 @@ export function CategorySidebar({
   onSelect,
   className,
 }: CategorySidebarProps) {
+  const categories = useMemo(
+    () => [
+      "All",
+      ...Array.from(new Set(kits.map((k) => k.category))).sort(),
+    ],
+    [kits]
+  );
   return (
     <nav
       className={cn(
@@ -33,7 +40,7 @@ export function CategorySidebar({
     >
       <h2 className="px-2 text-sm font-semibold text-foreground">Categories</h2>
       <ul className="mt-3 space-y-1">
-        {fixedCategories.map((category) => {
+        {categories.map((category) => {
           const isActive = active === category;
           return (
             <li key={category}>

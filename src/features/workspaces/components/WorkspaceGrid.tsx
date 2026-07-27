@@ -6,9 +6,10 @@ import { CreateWorkspaceCard } from "./CreateWorkspaceCard";
 
 interface WorkspaceGridProps {
   workspaces: Workspace[];
+  onCreateClick?: () => void;
 }
 
-export function WorkspaceGrid({ workspaces }: WorkspaceGridProps) {
+export function WorkspaceGrid({ workspaces, onCreateClick }: WorkspaceGridProps) {
   return (
     <div
       className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
@@ -17,7 +18,7 @@ export function WorkspaceGrid({ workspaces }: WorkspaceGridProps) {
       {workspaces.map((workspace) => (
         <WorkspaceCard key={workspace.id} workspace={workspace} />
       ))}
-      <CreateWorkspaceCard />
+      <CreateWorkspaceCard onClick={onCreateClick} />
     </div>
   );
 }

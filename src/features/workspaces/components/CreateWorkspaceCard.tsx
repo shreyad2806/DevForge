@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 interface CreateWorkspaceCardProps {
   className?: string;
+  onClick?: () => void;
 }
 
-export function CreateWorkspaceCard({ className }: CreateWorkspaceCardProps) {
+export function CreateWorkspaceCard({ className, onClick }: CreateWorkspaceCardProps) {
   return (
     <HoverCard scale={1.015} y={-3} className="h-full">
       <div
@@ -29,7 +30,7 @@ export function CreateWorkspaceCard({ className }: CreateWorkspaceCardProps) {
             Start a new project by adding your favorite Forge Kits.
           </p>
         </div>
-        <Button size="sm" className="rounded-lg">
+        <Button size="sm" className="rounded-lg" onClick={onClick}>
           Create Workspace
         </Button>
       </div>

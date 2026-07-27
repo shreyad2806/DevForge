@@ -23,6 +23,8 @@ import {
   Trophy,
   Zap,
   BarChart,
+  Box,
+  Briefcase,
   Star,
   MoreVertical,
 } from "lucide-react";
@@ -40,6 +42,7 @@ const mainIconMap = {
   Gamepad2,
   Folder,
   BarChart3,
+  Briefcase,
 };
 
 const kitIconMap = {
@@ -57,6 +60,7 @@ const kitIconMap = {
   Zap,
   BarChart,
   ShoppingCart,
+  Box,
 };
 
 interface WorkspaceCardProps {
@@ -66,7 +70,7 @@ interface WorkspaceCardProps {
 export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(workspace.isFavorite ?? false);
-  const Icon = mainIconMap[workspace.icon as keyof typeof mainIconMap];
+  const Icon = mainIconMap[workspace.icon as keyof typeof mainIconMap] ?? Briefcase;
 
   return (
     <HoverCard scale={1.015} y={-3} className="h-full">
@@ -74,7 +78,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
         className="relative flex h-full cursor-pointer flex-col rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30"
         role="link"
         tabIndex={0}
-        onClick={() => router.push("/workspaces")}
+        onClick={() => router.push(`/workspaces/${workspace.id}`)}
       >
         <div className="flex items-start justify-between">
           <div
@@ -136,7 +140,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
           <div className="flex items-center gap-1">
             {workspace.kitIcons.slice(0, 4).map((kitIcon, idx) => {
               const KitIcon =
-                kitIconMap[kitIcon as keyof typeof kitIconMap];
+                kitIconMap[kitIcon as keyof typeof kitIconMap] ?? Box;
               return (
                 <div
                   key={`${kitIcon}-${idx}`}

@@ -29,6 +29,12 @@ export interface ForgeKit {
   isPopular?: boolean;
   isFavorite?: boolean;
   createdAt?: string;
+  overview?: string;
+  installation?: string;
+  usage?: string;
+  apiReference?: string;
+  exampleCode?: string;
+  files?: { name: string; type: "folder" | "file"; children?: unknown[] }[];
 }
 
 export const forgeKits: ForgeKit[] = [

@@ -13,6 +13,14 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/signup") ||
     pathname.startsWith("/pricing");
 
+  const isAuthPage =
+    pathname.startsWith("/login") || pathname.startsWith("/signup");
+
+  if (isAuthPage && user) {
+    const dashboardUrl = new URL("/dashboard", request.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
+
   if (isPublicRoute) {
     return response;
   }

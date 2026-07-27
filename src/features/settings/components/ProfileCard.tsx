@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Camera } from "lucide-react";
 
 import { userProfile } from "@/data/settings";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { FadeInView } from "@/components/motion/FadeInView";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface FieldProps {
@@ -28,12 +29,61 @@ function Field({ label, children, hint }: FieldProps) {
 
 export function ProfileCard() {
   const [profile, setProfile] = useState(userProfile);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      const email = auth.user?.email ?? "";
+      const emailPrefix = email.split("@")[0] ?? "user";
+
+      let loaded = {
+        ...userProfile,
+        email,
+        fullName: emailPrefix,
+        username: emailPrefix,
+        avatarAlt: emailPrefix,
+      };
+
+      if (auth.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("name, bio, avatar_url")
+          .eq("id", auth.user.id)
+          .maybeSingle();
+
+        if (data && !cancelled) {
+          loaded = {
+            ...loaded,
+            fullName: data.name ? String(data.name) : loaded.fullName,
+            bio: data.bio ? String(data.bio) : loaded.bio,
+            avatarUrl: data.avatar_url ? String(data.avatar_url) : loaded.avatarUrl,
+            avatarAlt: data.name ? String(data.name) : loaded.avatarAlt,
+          };
+        }
+      }
+
+      if (!cancelled) {
+        setProfile(loaded);
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <FadeInView direction="up" distance={16} duration={0.4}>
       <HoverCard scale={1.005} y={-2}>
         <div className="rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30">
-          <h2 className="text-sm font-semibold text-foreground">Profile Informations</h2>
+          <h2 className="text-sm font-semibold text-foreground">Profile Information</h2>
+          {loading && (
+            <p className="mt-3 text-xs text-muted-foreground">Loading profile...</p>
+          )}
 
           <div className="mt-5 flex flex-col gap-6 lg:flex-row">
             <div className="flex flex-col items-center gap-2 lg:w-40">

@@ -50,11 +50,16 @@ const iconMap = {
 
 interface ForgeKitCardProps {
   kit: ForgeKit;
+  onToggle?: () => void;
 }
 
-export function ForgeKitCard({ kit }: ForgeKitCardProps) {
+export function ForgeKitCard({ kit, onToggle }: ForgeKitCardProps) {
   const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(kit.isFavorite ?? false);
+  const [internalFavorite, setInternalFavorite] = useState(
+    kit.isFavorite ?? false
+  );
+  const isFavorite =
+    onToggle !== undefined ? (kit.isFavorite ?? false) : internalFavorite;
   const Icon = iconMap[kit.icon];
   const slug = kit.slug;
 
@@ -93,7 +98,11 @@ export function ForgeKitCard({ kit }: ForgeKitCardProps) {
             aria-pressed={isFavorite}
             onClick={(e) => {
               e.stopPropagation();
-              setIsFavorite((f) => !f);
+              if (onToggle) {
+                onToggle();
+              } else {
+                setInternalFavorite((f) => !f);
+              }
             }}
           >
             <Heart

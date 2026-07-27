@@ -71,10 +71,15 @@ export async function DashboardShell({
   };
 
   let subscriptionPlan = "Free";
+  let workspaceCount = 0;
 
   try {
     if (userId) {
-      const [{ data: rows }, { data: rawSubscription }] = await Promise.all([
+      const [
+        { data: rows },
+        { data: rawSubscription },
+        { count: wsCount },
+      ] = await Promise.all([
         supabase
           .from("workspaces")
           .select("name, initial, color, current")
@@ -86,7 +91,15 @@ export async function DashboardShell({
           .select("plan")
           .eq("user_id", userId)
           .maybeSingle(),
+        supabase
+          .from("workspaces")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId),
       ]);
+
+      if (typeof wsCount === "number") {
+        workspaceCount = wsCount;
+      }
 
       if (rows && rows.length > 0) {
         const row = rows[0] as Record<string, unknown>;
@@ -112,6 +125,7 @@ export async function DashboardShell({
         user={authUser}
         currentWorkspace={currentWorkspace}
         subscriptionPlan={subscriptionPlan}
+        workspaceCount={workspaceCount}
         className="fixed left-0 top-0 z-40"
       />
       <Topbar user={authUser} className="fixed left-64 right-0 top-0 z-40" />

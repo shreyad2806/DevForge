@@ -14,10 +14,18 @@ function mapForgeKitRow(row: unknown): ForgeKit {
     reviews: r.reviews === null || r.reviews === undefined ? undefined : Number(r.reviews),
     icon: String(r.icon ?? "Box") as ForgeKit["icon"],
     frameworkTags: Array.isArray(r.framework_tags) ? (r.framework_tags as string[]) : [],
-    isPremium: Boolean(r.is_premium ?? false),
+    isPremium: Boolean(
+      r.premium ?? r.is_premium ?? false
+    ),
     isPopular: Boolean(r.is_popular ?? false),
     isFavorite: Boolean(r.is_favorite ?? false),
     createdAt: r.created_at ? String(r.created_at) : undefined,
+    overview: r.overview ? String(r.overview) : undefined,
+    installation: r.installation ? String(r.installation) : undefined,
+    usage: r.usage ? String(r.usage) : undefined,
+    apiReference: r.api_reference ? String(r.api_reference) : undefined,
+    exampleCode: r.example_code ? String(r.example_code) : undefined,
+    files: Array.isArray(r.files) ? (r.files as ForgeKit["files"]) : undefined,
   };
 }
 

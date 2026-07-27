@@ -1,18 +1,53 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Zap } from "lucide-react";
 
 import { billingSummary } from "@/data/invoices";
 import { Button } from "@/components/ui/button";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { FadeInView } from "@/components/motion/FadeInView";
+import { createClient } from "@/lib/supabase/client";
 
 export function CurrentPlanCard() {
+  const [plan, setPlan] = useState(billingSummary.plan);
+  const [status, setStatus] = useState(billingSummary.status);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        const { data } = await supabase
+          .from("subscriptions")
+          .select("plan, status")
+          .eq("user_id", auth.user.id)
+          .maybeSingle();
+
+        if (data && !cancelled) {
+          if (data.plan) setPlan(String(data.plan));
+          if (data.status) setStatus(String(data.status) as "Active" | "Inactive");
+        }
+      }
+      if (!cancelled) setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <FadeInView direction="up" distance={16} duration={0.4}>
       <HoverCard scale={1.005} y={-2}>
         <div className="rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30">
           <h2 className="text-sm font-semibold text-foreground">Current Plan</h2>
+
+          {loading && (
+            <p className="mt-3 text-xs text-muted-foreground">Loading plan...</p>
+          )}
 
           <div className="mt-4 flex items-start gap-3">
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -21,10 +56,10 @@ export function CurrentPlanCard() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold text-foreground">
-                  {billingSummary.plan}
+                  {plan}
                 </h3>
                 <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                  {billingSummary.status}
+                  {status}
                 </span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">

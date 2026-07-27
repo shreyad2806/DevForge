@@ -22,6 +22,7 @@ import {
 import { dashboardNavigation } from "@/data/dashboard";
 import type { DashboardUser } from "@/data/dashboard";
 import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const iconMap = {
@@ -58,9 +59,10 @@ interface SidebarProps {
   user: DashboardUser;
   currentWorkspace: { name: string; type: string; initial: string; color: string };
   subscriptionPlan: string;
+  workspaceCount: number;
 }
 
-export function Sidebar({ className, user, currentWorkspace, subscriptionPlan }: SidebarProps) {
+export function Sidebar({ className, user, currentWorkspace, subscriptionPlan, workspaceCount }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -175,7 +177,16 @@ export function Sidebar({ className, user, currentWorkspace, subscriptionPlan }:
           <p className="truncate text-xs text-muted-foreground">
             {user.email}
           </p>
-          <p className="truncate text-xs text-muted-foreground">{user.plan}</p>
+          <div className="mt-0.5 flex items-center gap-2">
+            {subscriptionPlan === "Pro" ? (
+              <Badge className="rounded-full px-1.5 py-0 text-[10px]">Pro</Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">{subscriptionPlan}</span>
+            )}
+            <span className="text-xs text-muted-foreground">
+              · {workspaceCount} workspaces
+            </span>
+          </div>
         </div>
         <button
           type="button"

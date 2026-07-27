@@ -109,27 +109,30 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     allKits = [];
   }
 
+  let workspaceKitRows: Record<string, unknown>[] = [];
+  try {
+    if (userId) {
+      const { data } = await supabase
+        .from("workspace_kits")
+        .select("id, workspace_id, kit_id, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      workspaceKitRows = data ?? [];
+    }
+  } catch {
+    workspaceKitRows = [];
+  }
+
   let totalKits = 0;
   let totalDownloads = 0;
   try {
-    const [
-      { count: kitsCount, error: kitsCountError },
-      { data: kitsDownloads, error: downloadsError },
-    ] = await Promise.all([
-      supabase.from("forge_kits").select("*", { count: "exact", head: true }),
-      supabase.from("forge_kits").select("downloads"),
-    ]);
-
-    if (!kitsCountError && typeof kitsCount === "number") {
-      totalKits = kitsCount;
-    }
-
-    if (!downloadsError && kitsDownloads) {
-      totalDownloads = kitsDownloads.reduce((sum, row) => {
-        const parsed = Number(row.downloads);
-        return sum + (Number.isNaN(parsed) ? 0 : parsed);
-      }, 0);
-    }
+    const userKitIds = new Set(workspaceKitRows.map((row) => String(row.kit_id)));
+    const userKits = allKits.filter((kit) => userKitIds.has(kit.id));
+    totalKits = userKits.length;
+    totalDownloads = userKits.reduce((sum, kit) => {
+      const parsed = Number(kit.downloads);
+      return sum + (Number.isNaN(parsed) ? 0 : parsed);
+    }, 0);
   } catch {
     // leave defaults at 0
   }
@@ -154,19 +157,33 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   try {
     const { data: workspaceRows, error } = await supabase
       .from("workspaces")
-      .select("id, name, initial, color, kit_count, current, created_at")
+      .select("id, name, initial, color, current, created_at")
       .eq("user_id", userId ?? "")
       .order("created_at", { ascending: false });
 
     if (!error && workspaceRows) {
+      const workspaceIds = workspaceRows.map((row) => String(row.id));
+      const { data: kitLinks } = await supabase
+        .from("workspace_kits")
+        .select("workspace_id, kit_id")
+        .eq("user_id", userId ?? "")
+        .in("workspace_id", workspaceIds);
+
+      const kitCountByWorkspace = new Map<string, number>();
+      for (const link of kitLinks ?? []) {
+        const wid = String(link.workspace_id);
+        kitCountByWorkspace.set(wid, (kitCountByWorkspace.get(wid) ?? 0) + 1);
+      }
+
       workspaces = workspaceRows.map((row: Record<string, unknown>) => {
         const name = String(row.name ?? "Workspace");
+        const id = String(row.id);
         return {
-          id: String(row.id),
+          id,
           name,
           initial: String(row.initial ?? name[0] ?? "W"),
           color: String(row.color ?? "bg-primary text-primary-foreground"),
-          kitCount: Number(row.kit_count ?? 0),
+          kitCount: kitCountByWorkspace.get(id) ?? 0,
           createdAt: row.created_at
             ? relativeTime(String(row.created_at))
             : "Unknown",
@@ -222,25 +239,21 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     },
   ];
 
-  const recentKits: RecentKit[] = allKits
-    .slice()
-    .sort((a, b) => {
-      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return bTime - aTime;
-    })
-    .slice(0, 5)
-    .map((kit) => ({
-      id: kit.id,
-      slug: kit.slug,
-      title: kit.title,
-      category: kit.category,
-      timeAgo: kit.createdAt ? relativeTime(kit.createdAt) : "Recently",
-      downloads: kit.downloads,
-      rating: kit.rating,
-      icon: categoryRecentIcon[kit.category] ?? "Shield",
-      color: categoryRecentColor[kit.category] ?? "bg-purple-500/10 text-purple-400",
-    }));
+  const recentKits: RecentKit[] = workspaceKitRows.slice(0, 5).map((row) => {
+    const kit = allKits.find((k) => k.id === String(row.kit_id));
+    const category = kit?.category ?? "";
+    return {
+      id: String(row.id ?? row.kit_id),
+      slug: kit?.slug ?? "",
+      title: kit?.title ?? "Unknown kit",
+      category,
+      timeAgo: row.created_at ? relativeTime(String(row.created_at)) : "Recently",
+      downloads: String(kit?.downloads ?? 0),
+      rating: kit?.rating ?? 0,
+      icon: categoryRecentIcon[category] ?? "Shield",
+      color: categoryRecentColor[category] ?? "bg-purple-500/10 text-purple-400",
+    };
+  });
 
   const categoryCounts = allKits.reduce<Record<string, number>>((acc, kit) => {
     acc[kit.category] = (acc[kit.category] ?? 0) + 1;
@@ -272,30 +285,81 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   let activityFeed: ActivityItem[] = [];
   try {
     if (userId) {
-      const { data: favoriteRows, error: favoritesError } = await supabase
-        .from("favorites")
-        .select("kit_id, created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(3);
+      const [
+        { data: favoriteRows, error: favoritesError },
+        { data: workspaceRows, error: workspacesError },
+      ] = await Promise.all([
+        supabase
+          .from("favorites")
+          .select("kit_id, created_at")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(2),
+        supabase
+          .from("workspaces")
+          .select("name, created_at")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(2),
+      ]);
 
-      if (!favoritesError && favoriteRows) {
-        activityFeed = favoriteRows.map((raw) => {
-          const row = raw as Record<string, unknown>;
-          const kitId = String(row.kit_id ?? "");
-          const kit = allKits.find((k) => k.id === kitId);
-          const createdAt = row.created_at
-            ? String(row.created_at)
-            : undefined;
-          return {
-            id: `activity-${kitId}`,
-            text: `You favorited ${kit?.title ?? "a kit"}`,
+      const events: { date: string | undefined; item: ActivityItem }[] = [];
+
+      for (const raw of workspaceRows ?? []) {
+        const row = raw as Record<string, unknown>;
+        const createdAt = row.created_at ? String(row.created_at) : undefined;
+        events.push({
+          date: createdAt,
+          item: {
+            id: `activity-workspace-${createdAt ?? Math.random()}`,
+            text: `Workspace "${String(row.name ?? "Unknown")}" created`,
+            timeAgo: createdAt ? relativeTime(createdAt) : "Recently",
+            icon: "Box" as ActivityItem["icon"],
+            color: "bg-blue-500/10 text-blue-400",
+          },
+        });
+      }
+
+      for (const raw of favoriteRows ?? []) {
+        const row = raw as Record<string, unknown>;
+        const kitId = String(row.kit_id ?? "");
+        const kit = allKits.find((k) => k.id === kitId);
+        const createdAt = row.created_at ? String(row.created_at) : undefined;
+        events.push({
+          date: createdAt,
+          item: {
+            id: `activity-favorite-${kitId}`,
+            text: `Favorite added: ${kit?.title ?? "a kit"}`,
             timeAgo: createdAt ? relativeTime(createdAt) : "Recently",
             icon: "Star" as ActivityItem["icon"],
             color: "bg-purple-500/10 text-purple-400",
-          };
+          },
         });
       }
+
+      for (const row of workspaceKitRows.slice(0, 2)) {
+        const kit = allKits.find((k) => k.id === String(row.kit_id));
+        const createdAt = row.created_at ? String(row.created_at) : undefined;
+        events.push({
+          date: createdAt,
+          item: {
+            id: `activity-kit-${String(row.id ?? row.kit_id)}`,
+            text: `Kit added: ${kit?.title ?? "a kit"}`,
+            timeAgo: createdAt ? relativeTime(createdAt) : "Recently",
+            icon: "Download" as ActivityItem["icon"],
+            color: "bg-emerald-500/10 text-emerald-400",
+          },
+        });
+      }
+
+      activityFeed = events
+        .sort((a, b) => {
+          const aTime = a.date ? new Date(a.date).getTime() : 0;
+          const bTime = b.date ? new Date(b.date).getTime() : 0;
+          return bTime - aTime;
+        })
+        .slice(0, 5)
+        .map((event) => event.item);
     }
   } catch {
     // leave empty
