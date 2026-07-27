@@ -6,15 +6,19 @@ import { PopularForgeKits } from "@/features/dashboard/components/PopularForgeKi
 import { WorkspaceCard } from "@/features/dashboard/components/WorkspaceCard";
 import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
 import { FadeInView } from "@/components/motion/FadeInView";
+import { fetchDashboardData } from "@/lib/data/dashboard";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { userName, stats, recentKits, popularCategories, workspaces, activityFeed } =
+    await fetchDashboardData();
+
   return (
     <div className="p-6 lg:p-8">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
         <FadeInView direction="up" distance={16} duration={0.4}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <DashboardHeader
-              name="Shreya"
+              name={userName}
               subtitle="Here's what's happening in your workspace today."
             />
             <QuickActions />
@@ -22,7 +26,7 @@ export default function DashboardPage() {
         </FadeInView>
 
         <FadeInView direction="up" distance={16} duration={0.4} delay={0.05}>
-          <StatsCards />
+          <StatsCards stats={stats} />
         </FadeInView>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -33,7 +37,7 @@ export default function DashboardPage() {
               duration={0.4}
               delay={0.1}
             >
-              <RecentForgeKits />
+              <RecentForgeKits kits={recentKits} />
             </FadeInView>
             <FadeInView
               direction="up"
@@ -41,7 +45,7 @@ export default function DashboardPage() {
               duration={0.4}
               delay={0.15}
             >
-              <PopularForgeKits />
+              <PopularForgeKits categories={popularCategories} />
             </FadeInView>
           </div>
 
@@ -52,7 +56,7 @@ export default function DashboardPage() {
               duration={0.4}
               delay={0.1}
             >
-              <WorkspaceCard />
+              <WorkspaceCard workspaces={workspaces} />
             </FadeInView>
             <FadeInView
               direction="up"
@@ -60,7 +64,7 @@ export default function DashboardPage() {
               duration={0.4}
               delay={0.15}
             >
-              <ActivityFeed />
+              <ActivityFeed items={activityFeed} />
             </FadeInView>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { SocialLoginButtons } from "@/features/auth/components/SocialLoginButton
 import { LoginForm } from "@/features/auth/components/LoginForm";
 import { HeroPanel } from "@/features/auth/components/HeroPanel";
 import { FooterLinks } from "@/features/auth/components/FooterLinks";
+import { Toaster } from "@/components/ui/toast";
 import { Code } from "lucide-react";
 
 export const metadata = {
@@ -19,8 +20,9 @@ export default function LoginPage() {
         <div className="absolute -bottom-1/4 -right-1/4 h-[50vw] w-[50vw] rounded-full bg-purple-600/5 blur-3xl" />
       </div>
 
-      <FadeInView direction="up" distance={16} duration={0.4}>
-        <BrandSection />
+      <Toaster>
+        <FadeInView direction="up" distance={16} duration={0.4}>
+          <BrandSection />
 
         <div className="mt-8 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl shadow-black/20">
           <div className="mb-6 flex items-start justify-between">
@@ -61,6 +63,7 @@ export default function LoginPage() {
           <FooterLinks />
         </div>
       </FadeInView>
+      </Toaster>
     </main>
   );
 }

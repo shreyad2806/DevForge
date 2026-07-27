@@ -2,11 +2,15 @@
 
 import { ChevronRight, Plus } from "lucide-react";
 
-import { workspaces } from "@/data/dashboard";
+import type { Workspace } from "@/data/dashboard";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { cn } from "@/lib/utils";
 
-export function WorkspaceCard() {
+interface WorkspaceCardProps {
+  workspaces: Workspace[];
+}
+
+export function WorkspaceCard({ workspaces }: WorkspaceCardProps) {
   return (
     <section
       className="rounded-2xl border border-border/60 bg-card p-5"
@@ -28,6 +32,11 @@ export function WorkspaceCard() {
       </div>
 
       <ul className="mt-5 space-y-2" aria-label="Workspaces list">
+        {workspaces.length === 0 && (
+          <li className="text-sm text-muted-foreground">
+            No workspaces yet. Create one to get started.
+          </li>
+        )}
         {workspaces.map((workspace) => (
           <li key={workspace.id}>
             <HoverCard scale={1.01} y={-1}>

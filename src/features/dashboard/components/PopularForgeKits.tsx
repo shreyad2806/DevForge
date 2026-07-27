@@ -2,9 +2,13 @@
 
 import { Server, Lock, CreditCard, Cloud, Wrench } from "lucide-react";
 
-import { popularCategories } from "@/data/dashboard";
+import type { PopularCategory } from "@/data/dashboard";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { cn } from "@/lib/utils";
+
+interface PopularForgeKitsProps {
+  categories: PopularCategory[];
+}
 
 const iconMap = {
   Server,
@@ -14,7 +18,7 @@ const iconMap = {
   Wrench,
 };
 
-export function PopularForgeKits() {
+export function PopularForgeKits({ categories }: PopularForgeKitsProps) {
   return (
     <section
       className="rounded-2xl border border-border/60 bg-card p-5"
@@ -36,7 +40,7 @@ export function PopularForgeKits() {
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {popularCategories.map((category) => {
+        {categories.map((category) => {
           const Icon = iconMap[category.icon];
 
           return (

@@ -2,9 +2,13 @@
 
 import { Box, Download, Briefcase, Star, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
-import { dashboardStats } from "@/data/dashboard";
+import type { DashboardStat } from "@/data/dashboard";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { cn } from "@/lib/utils";
+
+interface StatsCardsProps {
+  stats: DashboardStat[];
+}
 
 const iconMap = {
   Box,
@@ -25,10 +29,10 @@ const trendColorMap = {
   neutral: "text-muted-foreground",
 };
 
-export function StatsCards() {
+export function StatsCards({ stats }: StatsCardsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {dashboardStats.map((stat) => {
+      {stats.map((stat) => {
         const Icon = iconMap[stat.icon];
         const TrendIcon = trendIconMap[stat.trend];
 

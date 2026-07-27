@@ -56,11 +56,7 @@ export function ForgeKitCard({ kit }: ForgeKitCardProps) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(kit.isFavorite ?? false);
   const Icon = iconMap[kit.icon];
-  const slug = kit.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .replace(/-kit$/, "");
+  const slug = kit.slug;
 
   return (
     <HoverCard scale={1.015} y={-2} className="h-full">
@@ -68,7 +64,7 @@ export function ForgeKitCard({ kit }: ForgeKitCardProps) {
         className="relative flex h-full cursor-pointer flex-col rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:border-primary/30"
         role="link"
         tabIndex={0}
-        onClick={() => router.push(`/kits/${slug}`)}
+        onClick={() => router.push(`/kits/${kit.slug}`)}
       >
         {(kit.isPremium || kit.isPopular) && (
           <div className="absolute left-5 top-5 flex gap-1.5">

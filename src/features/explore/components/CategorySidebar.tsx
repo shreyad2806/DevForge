@@ -1,22 +1,24 @@
 "use client";
 
-import { exploreKits } from "@/data/forge-kits";
+import type { ForgeKit } from "@/data/forge-kits";
 import { cn } from "@/lib/utils";
 
 const fixedCategories = ["All", "Backend", "Authentication", "Payments", "Storage", "Utility"];
 
-function countByCategory(category: string) {
-  if (category === "All") return exploreKits.length;
-  return exploreKits.filter((k) => k.category === category).length;
+function countByCategory(category: string, kits: ForgeKit[]) {
+  if (category === "All") return kits.length;
+  return kits.filter((k) => k.category === category).length;
 }
 
 interface CategorySidebarProps {
+  kits: ForgeKit[];
   active?: string;
   onSelect?: (category: string) => void;
   className?: string;
 }
 
 export function CategorySidebar({
+  kits,
   active = "All",
   onSelect,
   className,
@@ -47,7 +49,7 @@ export function CategorySidebar({
                 aria-current={isActive ? "true" : undefined}
               >
                 <span>{category}</span>
-                <span className="text-xs text-muted-foreground">{countByCategory(category)}</span>
+                <span className="text-xs text-muted-foreground">{countByCategory(category, kits)}</span>
               </button>
             </li>
           );

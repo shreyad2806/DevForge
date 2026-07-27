@@ -5,6 +5,7 @@ import { SignupForm } from "@/features/auth/components/SignupForm";
 import { TermsSection } from "@/features/auth/components/TermsSection";
 import { BenefitsPanel } from "@/features/auth/components/BenefitsPanel";
 import { FooterLinks } from "@/features/auth/components/FooterLinks";
+import { Toaster } from "@/components/ui/toast";
 import { UserPlus } from "lucide-react";
 
 export const metadata = {
@@ -20,8 +21,9 @@ export default function SignupPage() {
         <div className="absolute -bottom-1/4 -right-1/4 h-[50vw] w-[50vw] rounded-full bg-purple-600/5 blur-3xl" />
       </div>
 
-      <FadeInView direction="up" distance={16} duration={0.4}>
-        <BrandSection tagline="Join thousands of developers building better" />
+      <Toaster>
+        <FadeInView direction="up" distance={16} duration={0.4}>
+          <BrandSection tagline="Join thousands of developers building better" />
 
         <div className="mt-8 w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl shadow-black/20">
           <div className="mb-6 flex items-start justify-between">
@@ -63,6 +65,7 @@ export default function SignupPage() {
           <FooterLinks />
         </div>
       </FadeInView>
+      </Toaster>
     </main>
   );
 }

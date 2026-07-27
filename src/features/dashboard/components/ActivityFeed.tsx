@@ -2,8 +2,12 @@
 
 import { Download, Star, Box } from "lucide-react";
 
-import { activityFeed } from "@/data/dashboard";
+import type { ActivityItem } from "@/data/dashboard";
 import { cn } from "@/lib/utils";
+
+interface ActivityFeedProps {
+  items: ActivityItem[];
+}
 
 const iconMap = {
   Download,
@@ -11,7 +15,7 @@ const iconMap = {
   Box,
 };
 
-export function ActivityFeed() {
+export function ActivityFeed({ items }: ActivityFeedProps) {
   return (
     <section
       className="rounded-2xl border border-border/60 bg-card p-5"
@@ -33,7 +37,7 @@ export function ActivityFeed() {
       </div>
 
       <ul className="mt-5 space-y-4" aria-label="Activity feed list">
-        {activityFeed.map((item) => {
+        {items.map((item) => {
           const Icon = iconMap[item.icon];
 
           return (

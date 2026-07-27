@@ -2,9 +2,13 @@
 
 import { Shield, CreditCard, Cloud, Lock, Mail, MoreHorizontal } from "lucide-react";
 
-import { recentKits } from "@/data/dashboard";
+import type { RecentKit } from "@/data/dashboard";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { cn } from "@/lib/utils";
+
+interface RecentForgeKitsProps {
+  kits: RecentKit[];
+}
 
 const iconMap = {
   Shield,
@@ -14,7 +18,7 @@ const iconMap = {
   Mail,
 };
 
-export function RecentForgeKits() {
+export function RecentForgeKits({ kits }: RecentForgeKitsProps) {
   return (
     <section
       className="rounded-2xl border border-border/60 bg-card p-5"
@@ -36,7 +40,7 @@ export function RecentForgeKits() {
       </div>
 
       <ul className="mt-5 space-y-1" aria-label="Recent kits list">
-        {recentKits.map((kit) => {
+        {kits.map((kit) => {
           const Icon = iconMap[kit.icon];
 
           return (

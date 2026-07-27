@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,6 +7,8 @@ import { User, Mail, Lock, ArrowRight, Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
+import { signup } from "@/app/signup/actions";
 import { cn } from "@/lib/utils";
 
 const passwordRequirements = [
@@ -32,12 +33,11 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -50,9 +50,33 @@ export function SignupForm() {
 
   const password = useWatch({ control, name: "password" });
 
-  const onSubmit = (data: SignupFormData) => {
-    console.log("Signup data", data);
-    router.push("/dashboard");
+  const onSubmit = async (data: SignupFormData) => {
+    const formData = new FormData();
+    formData.append("name", `${data.firstName} ${data.lastName}`.trim());
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+
+    try {
+      const result = await signup(formData);
+      if (result?.error) {
+        toast.add({
+          type: "error",
+          title: "Sign up failed",
+          description: result.error,
+          timeout: 5000,
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message?.includes("NEXT_REDIRECT")) {
+        return;
+      }
+      toast.add({
+        type: "error",
+        title: "Network error",
+        description: "Please check your connection and try again.",
+        timeout: 5000,
+      });
+    }
   };
 
   return (
@@ -152,8 +176,8 @@ export function SignupForm() {
         </ul>
       </div>
 
-      <Button type="submit" className="h-11 w-full rounded-xl">
-        Create account
+      <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-xl">
+        {isSubmitting ? "Creating account..." : "Create account"}
         <ArrowRight className="ml-2 size-4" aria-hidden="true" />
       </Button>
     </form>

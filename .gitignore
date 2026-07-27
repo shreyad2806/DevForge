@@ -43,6 +43,7 @@ logs/
 .env.test
 .env.production
 .env*
+!.env.example
 
 # vercel
 .vercel

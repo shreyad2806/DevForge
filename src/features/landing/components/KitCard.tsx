@@ -73,17 +73,13 @@ interface KitCardProps {
 export function KitCard({ kit }: KitCardProps) {
   const router = useRouter();
   const Icon = iconMap[kit.icon];
-  const slug = kit.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .replace(/-kit$/, "");
+  const slug = kit.slug;
 
   return (
     <HoverCard className="h-full" scale={1.01} y={-4}>
       <Card
         className="flex h-full cursor-pointer flex-col border-border/60 bg-card p-5 transition-colors hover:border-primary/30"
-        onClick={() => router.push(`/kits/${slug}`)}
+        onClick={() => router.push(`/kits/${kit.slug}`)}
         role="link"
       >
         <CardContent className="flex flex-1 flex-col p-0">

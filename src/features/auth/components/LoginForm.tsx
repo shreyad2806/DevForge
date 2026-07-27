@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,6 +7,8 @@ import { Mail, Lock, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
+import { login } from "@/app/login/actions";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -19,11 +20,10 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -33,9 +33,32 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log("Login data", data);
-    router.push("/dashboard");
+  const onSubmit = async (data: LoginFormData) => {
+    const formData = new FormData();
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+
+    try {
+      const result = await login(formData);
+      if (result?.error) {
+        toast.add({
+          type: "error",
+          title: "Sign in failed",
+          description: result.error,
+          timeout: 5000,
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message?.includes("NEXT_REDIRECT")) {
+        return;
+      }
+      toast.add({
+        type: "error",
+        title: "Network error",
+        description: "Please check your connection and try again.",
+        timeout: 5000,
+      });
+    }
   };
 
   return (
@@ -98,8 +121,8 @@ export function LoginForm() {
         </label>
       </div>
 
-      <Button type="submit" className="h-11 w-full rounded-xl">
-        Sign in
+      <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-xl">
+        {isSubmitting ? "Signing in..." : "Sign in"}
         <ArrowRight className="ml-2 size-4" aria-hidden="true" />
       </Button>
     </form>
