@@ -62,7 +62,7 @@ export function WorkspaceCard({ workspaces }: WorkspaceCardProps) {
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {workspace.kitCount} kits
+                    {workspace.kitCount} kits · {workspace.createdAt}
                   </p>
                 </div>
                 <ChevronRight

@@ -77,14 +77,27 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
 
   let userName = "User";
+  let userId: string | undefined;
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    userName =
-      (user?.user_metadata?.name as string | undefined) ??
-      user?.email?.split("@")[0] ??
-      "User";
+    userId = user?.id;
+
+    const emailPrefix = user?.email?.split("@")[0] ?? "User";
+    const fallbackName =
+      emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+
+    if (userId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", userId)
+        .maybeSingle();
+      userName = String(profile?.name ?? "").trim() || fallbackName;
+    } else {
+      userName = fallbackName;
+    }
   } catch {
     // ignore
   }
@@ -96,19 +109,54 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     allKits = [];
   }
 
-  const totalKits = allKits.length;
-  const totalDownloads = allKits.reduce((sum, kit) => {
-    const parsed = Number(kit.downloads);
-    return sum + (Number.isNaN(parsed) ? 0 : parsed);
-  }, 0);
-  const favoritesCount = allKits.filter((kit) => kit.isFavorite).length;
+  let totalKits = 0;
+  let totalDownloads = 0;
+  try {
+    const [
+      { count: kitsCount, error: kitsCountError },
+      { data: kitsDownloads, error: downloadsError },
+    ] = await Promise.all([
+      supabase.from("forge_kits").select("*", { count: "exact", head: true }),
+      supabase.from("forge_kits").select("downloads"),
+    ]);
+
+    if (!kitsCountError && typeof kitsCount === "number") {
+      totalKits = kitsCount;
+    }
+
+    if (!downloadsError && kitsDownloads) {
+      totalDownloads = kitsDownloads.reduce((sum, row) => {
+        const parsed = Number(row.downloads);
+        return sum + (Number.isNaN(parsed) ? 0 : parsed);
+      }, 0);
+    }
+  } catch {
+    // leave defaults at 0
+  }
+
+  let favoritesCount = 0;
+  try {
+    if (userId) {
+      const { count, error } = await supabase
+        .from("favorites")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (!error && typeof count === "number") {
+        favoritesCount = count;
+      }
+    }
+  } catch {
+    // leave at 0
+  }
 
   let workspacesCount = 0;
   let workspaces: Workspace[] = [];
   try {
     const { data: workspaceRows, error } = await supabase
       .from("workspaces")
-      .select("id, name, initial, color, kit_count, current");
+      .select("id, name, initial, color, kit_count, current, created_at")
+      .eq("user_id", userId ?? "")
+      .order("created_at", { ascending: false });
 
     if (!error && workspaceRows) {
       workspaces = workspaceRows.map((row: Record<string, unknown>) => {
@@ -119,6 +167,9 @@ export async function fetchDashboardData(): Promise<DashboardData> {
           initial: String(row.initial ?? name[0] ?? "W"),
           color: String(row.color ?? "bg-primary text-primary-foreground"),
           kitCount: Number(row.kit_count ?? 0),
+          createdAt: row.created_at
+            ? relativeTime(String(row.created_at))
+            : "Unknown",
           current: Boolean(row.current),
         };
       });
@@ -181,9 +232,12 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     .slice(0, 5)
     .map((kit) => ({
       id: kit.id,
+      slug: kit.slug,
       title: kit.title,
       category: kit.category,
       timeAgo: kit.createdAt ? relativeTime(kit.createdAt) : "Recently",
+      downloads: kit.downloads,
+      rating: kit.rating,
       icon: categoryRecentIcon[kit.category] ?? "Shield",
       color: categoryRecentColor[kit.category] ?? "bg-purple-500/10 text-purple-400",
     }));
@@ -193,44 +247,59 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     return acc;
   }, {});
 
-  const popularCategories: PopularCategory[] = Object.entries(categoryCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5)
-    .map(([category, count], index) => ({
-      id: `category-${category}-${index}`,
+  const categories = [
+    "Backend",
+    "Authentication",
+    "Payments",
+    "Storage",
+    "Utility",
+  ];
+
+  const popularCategories: PopularCategory[] = categories
+    .map((category) => ({
       name: category,
-      kitCount: count,
-      icon: categoryPopularIcon[category] ?? "Wrench",
-      color: categoryPopularColor[category] ?? "text-yellow-400",
+      kitCount: categoryCounts[category] ?? 0,
+    }))
+    .sort((a, b) => b.kitCount - a.kitCount)
+    .map((category, index) => ({
+      id: `category-${category.name}-${index}`,
+      name: category.name,
+      kitCount: category.kitCount,
+      icon: categoryPopularIcon[category.name] ?? "Wrench",
+      color: categoryPopularColor[category.name] ?? "text-yellow-400",
     }));
 
-  const activityFeed: ActivityItem[] = allKits
-    .slice()
-    .sort((a, b) => {
-      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return bTime - aTime;
-    })
-    .slice(0, 3)
-    .map((kit, index) => {
-      const isFavorite = kit.isFavorite;
-      const icon: ActivityItem["icon"] = isFavorite ? "Star" : index === 0 ? "Download" : "Box";
-      const color =
-        icon === "Star"
-          ? "bg-purple-500/10 text-purple-400"
-          : icon === "Download"
-            ? "bg-green-500/10 text-green-400"
-            : "bg-blue-500/10 text-blue-400";
-      return {
-        id: `activity-${kit.id}`,
-        text: isFavorite
-          ? `You added ${kit.title} to favorites`
-          : `You downloaded ${kit.title}`,
-        timeAgo: kit.createdAt ? relativeTime(kit.createdAt) : "Recently",
-        icon,
-        color,
-      };
-    });
+  let activityFeed: ActivityItem[] = [];
+  try {
+    if (userId) {
+      const { data: favoriteRows, error: favoritesError } = await supabase
+        .from("favorites")
+        .select("kit_id, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!favoritesError && favoriteRows) {
+        activityFeed = favoriteRows.map((raw) => {
+          const row = raw as Record<string, unknown>;
+          const kitId = String(row.kit_id ?? "");
+          const kit = allKits.find((k) => k.id === kitId);
+          const createdAt = row.created_at
+            ? String(row.created_at)
+            : undefined;
+          return {
+            id: `activity-${kitId}`,
+            text: `You favorited ${kit?.title ?? "a kit"}`,
+            timeAgo: createdAt ? relativeTime(createdAt) : "Recently",
+            icon: "Star" as ActivityItem["icon"],
+            color: "bg-purple-500/10 text-purple-400",
+          };
+        });
+      }
+    }
+  } catch {
+    // leave empty
+  }
 
   return {
     userName,

@@ -19,7 +19,8 @@ import {
   Zap,
 } from "lucide-react";
 
-import { dashboardUser, currentWorkspace, dashboardNavigation } from "@/data/dashboard";
+import { dashboardNavigation } from "@/data/dashboard";
+import type { DashboardUser } from "@/data/dashboard";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,14 @@ function Logo() {
   );
 }
 
-export function Sidebar({ className }: { className?: string }) {
+interface SidebarProps {
+  className?: string;
+  user: DashboardUser;
+  currentWorkspace: { name: string; type: string; initial: string; color: string };
+  subscriptionPlan: string;
+}
+
+export function Sidebar({ className, user, currentWorkspace, subscriptionPlan }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -123,36 +131,51 @@ export function Sidebar({ className }: { className?: string }) {
             <Zap className="size-4" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">Upgrade to Pro</p>
+            <p className="text-sm font-medium text-foreground">
+              {subscriptionPlan === "Pro" ? "You're on Pro" : "Upgrade to Pro"}
+            </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Unlock premium kits, private workspaces and more.
+              {subscriptionPlan === "Pro"
+                ? "You have access to premium kits, private workspaces and more."
+                : "Unlock premium kits, private workspaces and more."}
             </p>
           </div>
         </div>
-        <Link
-          href="/pricing"
-          className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full text-center")}
-        >
-          Upgrade Now
-        </Link>
+        {subscriptionPlan !== "Pro" && (
+          <Link
+            href="/pricing"
+            className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full text-center")}
+          >
+            Upgrade Now
+          </Link>
+        )}
       </div>
 
       {/* User */}
       <div className="mt-4 flex items-center gap-3 border-t border-border/40 px-2 pt-4">
-        <div
-          className="flex size-9 items-center justify-center rounded-full text-xs font-semibold text-white"
-          style={{ backgroundColor: dashboardUser.avatarColor }}
-          aria-hidden="true"
-        >
-          {dashboardUser.initials}
-        </div>
+        {user.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt=""
+            className="size-9 rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className="flex size-9 items-center justify-center rounded-full text-xs font-semibold text-white"
+            style={{ backgroundColor: user.avatarColor }}
+            aria-hidden="true"
+          >
+            {user.initials}
+          </div>
+        )}
         <div className="flex-1 overflow-hidden">
           <p className="truncate text-sm font-medium text-foreground">
-            {dashboardUser.name}
+            {user.name}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {dashboardUser.email}
+            {user.email}
           </p>
+          <p className="truncate text-xs text-muted-foreground">{user.plan}</p>
         </div>
         <button
           type="button"

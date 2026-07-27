@@ -1,6 +1,7 @@
 "use client";
 
-import { Shield, CreditCard, Cloud, Lock, Mail, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+import { Shield, CreditCard, Cloud, Lock, Mail } from "lucide-react";
 
 import type { RecentKit } from "@/data/dashboard";
 import { HoverCard } from "@/components/motion/HoverCard";
@@ -40,44 +41,48 @@ export function RecentForgeKits({ kits }: RecentForgeKitsProps) {
       </div>
 
       <ul className="mt-5 space-y-1" aria-label="Recent kits list">
-        {kits.map((kit) => {
-          const Icon = iconMap[kit.icon];
+        {kits.length === 0 ? (
+          <li className="py-4 text-sm text-muted-foreground">
+            No recent kits.
+          </li>
+        ) : (
+          kits.map((kit) => {
+            const Icon = iconMap[kit.icon];
 
-          return (
-            <li key={kit.id}>
-              <HoverCard scale={1.01} y={-1}>
-                <div className="flex items-center gap-4 rounded-xl p-3 transition-colors hover:bg-muted/40">
-                  <div
-                    className={cn(
-                      "flex size-10 items-center justify-center rounded-xl",
-                      kit.color
-                    )}
-                  >
-                    <Icon className="size-5" aria-hidden="true" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {kit.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {kit.category}
-                    </p>
-                  </div>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {kit.timeAgo}
-                  </span>
-                  <button
-                    type="button"
-                    className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                    aria-label={`${kit.title} actions`}
-                  >
-                    <MoreHorizontal className="size-4" aria-hidden="true" />
-                  </button>
-                </div>
-              </HoverCard>
-            </li>
-          );
-        })}
+            return (
+              <li key={kit.id}>
+                <Link href={`/kits/${kit.slug}`} className="block">
+                  <HoverCard scale={1.01} y={-1}>
+                    <div className="flex items-center gap-4 rounded-xl p-3 transition-colors hover:bg-muted/40">
+                      <div
+                        className={cn(
+                          "flex size-10 items-center justify-center rounded-xl",
+                          kit.color
+                        )}
+                      >
+                        <Icon className="size-5" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {kit.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {kit.category}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {kit.downloads} downloads · {kit.rating.toFixed(1)} rating
+                        </p>
+                      </div>
+                      <span className="hidden text-xs text-muted-foreground sm:inline">
+                        {kit.timeAgo}
+                      </span>
+                    </div>
+                  </HoverCard>
+                </Link>
+              </li>
+            );
+          })
+        )}
       </ul>
 
       <a

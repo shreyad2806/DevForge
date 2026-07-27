@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Search, Gift, Bell, ChevronDown, LogOut } from "lucide-react";
 
-import { dashboardUser } from "@/data/dashboard";
+import type { DashboardUser } from "@/data/dashboard";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -15,7 +15,12 @@ import {
 import { logout } from "@/app/logout/actions";
 import { cn } from "@/lib/utils";
 
-export function Topbar({ className }: { className?: string }) {
+interface TopbarProps {
+  className?: string;
+  user: DashboardUser;
+}
+
+export function Topbar({ className, user }: TopbarProps) {
   async function handleLogout() {
     try {
       await logout();
@@ -75,10 +80,10 @@ export function Topbar({ className }: { className?: string }) {
               >
                 <div
                   className="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white"
-                  style={{ backgroundColor: dashboardUser.avatarColor }}
+                  style={{ backgroundColor: user.avatarColor }}
                   aria-hidden="true"
                 >
-                  {dashboardUser.initials}
+                  {user.initials}
                 </div>
                 <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
               </Button>
