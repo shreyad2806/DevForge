@@ -83,7 +83,7 @@ export async function DashboardShell({
       ] = await Promise.all([
         supabase
           .from("workspaces")
-          .select("name, initial, color, current")
+          .select("name, current")
           .eq("user_id", userId)
           .eq("current", true)
           .limit(1),
@@ -101,11 +101,12 @@ export async function DashboardShell({
       if (rows && rows.length > 0) {
         const row = rows[0] as Record<string, unknown>;
         const workspaceName = String(row.name ?? "Workspace");
+        const initial = workspaceName[0] ?? "W";
         currentWorkspace = {
           name: workspaceName,
           type: "Workspace",
-          initial: String(row.initial ?? workspaceName[0] ?? "W"),
-          color: String(row.color ?? "bg-primary text-primary-foreground"),
+          initial: initial.toUpperCase(),
+          color: "bg-primary text-primary-foreground",
         };
       }
 

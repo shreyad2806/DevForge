@@ -157,7 +157,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   try {
     const { data: workspaceRows, error } = await supabase
       .from("workspaces")
-      .select("id, name, initial, color, current, created_at")
+      .select("id, name, current, created_at")
       .eq("user_id", userId ?? "")
       .order("created_at", { ascending: false });
 
@@ -178,11 +178,12 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       workspaces = workspaceRows.map((row: Record<string, unknown>) => {
         const name = String(row.name ?? "Workspace");
         const id = String(row.id);
+        const initial = (name[0] ?? "W").toUpperCase();
         return {
           id,
           name,
-          initial: String(row.initial ?? name[0] ?? "W"),
-          color: String(row.color ?? "bg-primary text-primary-foreground"),
+          initial,
+          color: "bg-primary text-primary-foreground",
           kitCount: kitCountByWorkspace.get(id) ?? 0,
           createdAt: row.created_at
             ? relativeTime(String(row.created_at))

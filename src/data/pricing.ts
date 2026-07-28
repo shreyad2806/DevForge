@@ -69,7 +69,7 @@ export const pricingPlans: PricingPlan[] = [
       "Dedicated Support",
       "Custom Onboarding",
     ],
-    cta: "Start Team Trial",
-    href: "/billing",
+    cta: "Coming Soon",
+    href: "/pricing",
   },
 ];

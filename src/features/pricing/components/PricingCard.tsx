@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { HoverCard } from "@/components/motion/HoverCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { activateFreePlan } from "@/app/pricing/actions";
 import type { PricingPlan } from "@/data/pricing";
 
 const iconMap = {
@@ -28,17 +29,37 @@ export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleCheckout = async () => {
-    if (plan.id === "free") {
-      router.push(plan.href);
+  const handlePlanCheckout = async (selectedPlan: PricingPlan) => {
+    if (loading) return;
+
+    if (selectedPlan.id === "team") {
       return;
     }
 
-    if (loading) return;
     setLoading(true);
 
     try {
-      const response = await fetch("/api/polar/checkout", { method: "POST" });
+      if (selectedPlan.id === "free") {
+        const result = await activateFreePlan();
+
+        if (result.error === "Unauthorized") {
+          router.push("/signup");
+          return;
+        }
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        router.push("/dashboard");
+        return;
+      }
+
+      const response = await fetch("/api/polar/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const data = await response.json();
 
       if (!response.ok || !data.checkoutUrl) {
@@ -118,8 +139,8 @@ export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
           <Button
             variant={plan.highlighted ? "default" : "outline"}
             className="w-full justify-center rounded-lg"
-            onClick={handleCheckout}
-            disabled={loading}
+            onClick={() => handlePlanCheckout(plan)}
+            disabled={loading || plan.id === "team"}
           >
             {loading ? (
               <>

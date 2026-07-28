@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   getPolarClient,
@@ -6,7 +6,7 @@ import {
   getPolarAppUrl,
 } from "@/lib/polar";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const {
@@ -17,10 +17,14 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const text = await request.text();
+    const body = text ? (JSON.parse(text) as { productId?: string }) : {};
+    const requestedProductId = body.productId?.trim();
+
     const appUrl = getPolarAppUrl();
     const successUrl = `${appUrl}/billing?success=true`;
     const cancelUrl = `${appUrl}/pricing`;
-    const productId = getPolarProductId();
+    const productId = requestedProductId || getPolarProductId();
     const polar = getPolarClient();
 
     const checkout = await polar.checkouts.create({

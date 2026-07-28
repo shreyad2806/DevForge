@@ -20,25 +20,6 @@ interface CreateWorkspaceDialogProps {
   onSuccess: () => void;
 }
 
-const colorClasses = [
-  "bg-purple-500/10 text-purple-400",
-  "bg-emerald-500/10 text-emerald-400",
-  "bg-orange-500/10 text-orange-400",
-  "bg-blue-500/10 text-blue-400",
-  "bg-pink-500/10 text-pink-400",
-  "bg-amber-500/10 text-amber-400",
-  "bg-cyan-500/10 text-cyan-400",
-];
-
-function colorForName(name: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % colorClasses.length;
-  return colorClasses[index];
-}
-
 export function CreateWorkspaceDialog({
   open,
   onOpenChange,
@@ -77,9 +58,6 @@ export function CreateWorkspaceDialog({
         user_id: user.id,
         name: trimmed,
         description: description.trim(),
-        initial: trimmed[0]?.toUpperCase() ?? "W",
-        color: colorForName(trimmed),
-        current: false,
       });
 
       if (insertError) {
