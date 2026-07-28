@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, Zap, Users, Check } from "lucide-react";
+import { toast } from "sonner";
+import { Box, Zap, Users, Check, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { HoverCard } from "@/components/motion/HoverCard";
@@ -24,12 +26,32 @@ export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
   const Icon = iconMap[plan.icon as keyof typeof iconMap];
   const price = isYearly ? plan.yearlyPrice : plan.price;
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (plan.id === "free") {
       router.push(plan.href);
-    } else {
-      router.push("/checkout");
+      return;
+    }
+
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/polar/checkout", { method: "POST" });
+      const data = await response.json();
+
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+
+      window.location.href = data.checkoutUrl;
+    } catch (error) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Checkout failed";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,8 +119,16 @@ export function PricingCard({ plan, isYearly = false }: PricingCardProps) {
             variant={plan.highlighted ? "default" : "outline"}
             className="w-full justify-center rounded-lg"
             onClick={handleCheckout}
+            disabled={loading}
           >
-            {plan.cta}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+                Redirecting...
+              </>
+            ) : (
+              plan.cta
+            )}
           </Button>
         </div>
       </div>

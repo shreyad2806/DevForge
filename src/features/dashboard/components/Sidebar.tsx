@@ -147,7 +147,7 @@ export function Sidebar({ className, user, currentWorkspace, subscriptionPlan, w
         </div>
         {!isPro && (
           <Link
-            href="/checkout"
+            href="/pricing"
             className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full text-center")}
           >
             Upgrade Now

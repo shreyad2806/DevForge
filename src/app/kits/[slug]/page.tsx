@@ -141,7 +141,7 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
           <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-primary">
             <Lock className="inline size-4 align-text-bottom" aria-hidden="true" />{" "}
             This is a Premium kit.{" "}
-            <Link href="/checkout" className="font-semibold underline">
+            <Link href="/pricing" className="font-semibold underline">
               Upgrade to Pro
             </Link>{" "}
             to unlock documentation and downloads.
@@ -230,7 +230,7 @@ export default async function KitDetailPage({ params }: KitDetailPageProps) {
                 </div>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <Link
-                    href={isLocked ? "/checkout" : "#"}
+                    href={isLocked ? "/pricing" : "#"}
                     className={cn(buttonVariants({ size: "sm" }), "w-full sm:w-auto")}
                   >
                     {isLocked ? "Upgrade to Download" : "Download"}

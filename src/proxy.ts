@@ -2,19 +2,21 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  const { supabase, response } = await updateSession(request);
-  const { data: { user } } = await supabase.auth.getUser();
+  const { response, user } = await updateSession(request);
 
   const { pathname } = request.nextUrl;
 
   const isPublicRoute =
     pathname === "/" ||
     pathname.startsWith("/login") ||
+    pathname.startsWith("/signin") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/pricing");
 
   const isAuthPage =
-    pathname.startsWith("/login") || pathname.startsWith("/signup");
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signin") ||
+    pathname.startsWith("/signup");
 
   if (isAuthPage && user) {
     const dashboardUrl = new URL("/dashboard", request.url);
@@ -26,10 +28,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    const redirectResponse = NextResponse.redirect(loginUrl);
-    response.cookies.getAll().forEach(({ name, value }) => {
-      redirectResponse.cookies.set(name, value);
+    const signinUrl = new URL("/signin", request.url);
+    const redirectResponse = NextResponse.redirect(signinUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      const { name, value, ...options } = cookie;
+      redirectResponse.cookies.set(name, value, options);
     });
     return redirectResponse;
   }
@@ -48,6 +51,7 @@ export const config = {
     "/kits/:path*",
     "/",
     "/login",
+    "/signin",
     "/signup",
     "/pricing",
   ],

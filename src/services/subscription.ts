@@ -113,5 +113,5 @@ export async function updateSubscription(
 
 export async function isPro(client: SupabaseClient, userId: string): Promise<boolean> {
   const subscription = await getSubscription(client, userId);
-  return subscription.plan === "pro" && !["canceled", "inactive"].includes(subscription.status);
+  return subscription.plan === "pro";
 }

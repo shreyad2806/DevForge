@@ -19,7 +19,7 @@ export async function POST() {
 
     const appUrl = getPolarAppUrl();
     const successUrl = `${appUrl}/billing?success=true`;
-    const cancelUrl = `${appUrl}/pricing?cancelled=true`;
+    const cancelUrl = `${appUrl}/pricing`;
     const productId = getPolarProductId();
     const polar = getPolarClient();
 
@@ -28,9 +28,11 @@ export async function POST() {
       successUrl,
       returnUrl: cancelUrl,
       customerEmail: user.email ?? undefined,
+      externalCustomerId: user.id,
+      metadata: { userId: user.id },
     });
 
-    return NextResponse.json({ checkout_url: checkout.url });
+    return NextResponse.json({ checkoutUrl: checkout.url ?? "" });
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : "Internal server error";

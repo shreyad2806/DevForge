@@ -1,191 +1,141 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "node:crypto";
-import { createClient } from "@/lib/supabase/server";
-import { updateSubscription } from "@/services/subscription";
-import { getPolarProductId } from "@/lib/polar";
+import { createClient } from "@supabase/supabase-js";
+import { verifyWebhook } from "@/lib/polar";
 
-const WEBHOOK_SECRET = process.env.POLAR_WEBHOOK_SECRET;
+const SUPABASE_URL = process.env.SUPABASE_URL?.trim() ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
 
-function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
-  if (!WEBHOOK_SECRET || !signatureHeader) return false;
+const WEBHOOK_EVENTS = [
+  "subscription.created",
+  "subscription.updated",
+  "subscription.active",
+  "subscription.canceled",
+  "subscription.revoked",
+  "order.paid",
+] as const;
 
-  const expected = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest();
-
-  const candidates = signatureHeader
-    .split(",")
-    .map((part) => part.trim())
-    .flatMap((part) => {
-      const prefixMatch = part.match(/^(?:v1|sha256)=?(.+)$/i);
-      const sig = prefixMatch ? prefixMatch[1].trim() : part;
-      if (!sig) return [];
-      return [sig.toLowerCase()];
-    });
-
-  for (const sig of candidates) {
-    let candidate: Buffer;
-    try {
-      if (/^[0-9a-f]+$/i.test(sig)) {
-        candidate = Buffer.from(sig, "hex");
-      } else {
-        candidate = Buffer.from(sig, "base64");
-      }
-      if (candidate.length === expected.length) {
-        if (crypto.timingSafeEqual(candidate, expected)) return true;
-      }
-    } catch {
-      // ignore malformed signatures
-    }
-  }
-
-  return false;
-}
-
-async function resolveUser(supabase: Awaited<ReturnType<typeof createClient>>, email?: string | null) {
-  if (!email) return null;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-  if (error) {
-    console.error("[polar webhook] Failed to resolve user:", error.message);
-    return null;
-  }
-  return data;
+function getProductId(data: Record<string, unknown>): string | undefined {
+  return (
+    (data.productId as string | undefined) ??
+    (data.product_id as string | undefined) ??
+    ((data.product as { id?: string } | undefined)?.id)
+  );
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (!WEBHOOK_SECRET) {
-      throw new Error("Missing POLAR_WEBHOOK_SECRET environment variable");
-    }
-
     const rawBody = await request.text();
+
     const signature =
       request.headers.get("x-polar-webhook-signature") ??
       request.headers.get("x-polar-signature") ??
       request.headers.get("webhook-signature");
 
-    if (!verifySignature(rawBody, signature)) {
-      console.warn("[polar webhook] Invalid webhook signature");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    if (!verifyWebhook(rawBody, signature)) {
+      console.warn("[polar webhook] Invalid signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("[polar webhook] Missing Supabase service role credentials");
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const payload = JSON.parse(rawBody) as {
       type: string;
-      data: Record<string, unknown> & { customer?: { email?: string | null } | null };
+      data: Record<string, unknown>;
     };
+
     const { type, data } = payload;
 
-    const supabase = await createClient();
-    const polarProductId = getPolarProductId();
+    console.log("[polar webhook] Webhook received:", type);
 
-    const customerEmail =
-      data.customer?.email ??
-      (data.customerEmail as string | undefined) ??
-      (data.customer_email as string | undefined);
-
-    const user = await resolveUser(supabase, customerEmail);
-    if (!user) {
-      console.warn("[polar webhook] No Supabase user found for email:", customerEmail ?? "unknown");
+    if (!WEBHOOK_EVENTS.includes(type as (typeof WEBHOOK_EVENTS)[number])) {
+      console.log("[polar webhook] Ignoring event type:", type);
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
-    if (
-      type === "subscription.created" ||
-      type === "subscription.updated" ||
-      type === "subscription.active" ||
-      type === "subscription.uncanceled" ||
-      type === "subscription.resumed"
-    ) {
-      const productId =
-        (data.productId as string | undefined) ??
-        (data.product_id as string | undefined) ??
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((data.product as any)?.id as string | undefined);
+    const metadata = data.metadata as { userId?: string } | undefined;
+    const userId = metadata?.userId;
 
-      const plan = productId === polarProductId ? "pro" : "free";
-      const status = String(data.status ?? "active");
-      const currentPeriodEnd = data.currentPeriodEnd
-        ? new Date(data.currentPeriodEnd as string).toISOString()
-        : null;
-
-      const { error } = await updateSubscription(supabase,
-        {
-          user_id: user.id,
-          provider: "polar",
-          provider_subscription_id: String(data.id),
-          plan,
-          status,
-          current_period_end: currentPeriodEnd,
-          updated_at: new Date().toISOString(),
-        }
-      );
-
-      if (error) {
-        console.error("[polar webhook] Upsert failed:", error);
-        return NextResponse.json({ error: "Database error" }, { status: 500 });
-      }
-
-      console.log("[polar webhook] Subscription upserted:", data.id, "for user", user.id);
+    if (!userId) {
+      console.warn("[polar webhook] metadata.userId missing, skipping. Event:", type);
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
-    if (type === "subscription.canceled" || type === "subscription.revoked") {
-      const { error } = await updateSubscription(supabase,
-        {
-          user_id: user.id,
-          provider: "polar",
-          provider_subscription_id: String(data.id),
-          plan: "free",
-          status: "canceled",
-          current_period_end: data.currentPeriodEnd
-            ? new Date(data.currentPeriodEnd as string).toISOString()
-            : null,
-          updated_at: new Date().toISOString(),
-        }
-      );
+    console.log("[polar webhook] User ID:", userId, "Event:", type);
 
-      if (error) {
-        console.error("[polar webhook] Cancel upsert failed:", error);
-        return NextResponse.json({ error: "Database error" }, { status: 500 });
-      }
+    const providerSubscriptionId =
+      type === "order.paid"
+        ? ((data.subscriptionId as string | undefined) ?? String(data.id))
+        : String(data.id);
 
-      console.log("[polar webhook] Subscription canceled:", data.id, "for user", user.id);
-      return NextResponse.json({ received: true }, { status: 200 });
+    const currentPeriodEnd = data.currentPeriodEnd
+      ? new Date(data.currentPeriodEnd as string).toISOString()
+      : null;
+
+    let plan: string | undefined;
+    let status: string | undefined;
+
+    switch (type) {
+      case "subscription.created":
+      case "subscription.active":
+        status = "active";
+        break;
+      case "subscription.updated":
+        status = String(data.status ?? "active");
+        break;
+      case "subscription.canceled":
+        status = "canceled";
+        break;
+      case "subscription.revoked":
+        status = "revoked";
+        break;
+      case "order.paid":
+        status = String(data.status ?? "active");
+        break;
     }
 
-    if (type === "order.paid") {
-      const productId =
-        (data.productId as string | undefined) ??
-        (data.product_id as string | undefined) ??
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((data.product as any)?.id as string | undefined);
-      const plan = productId === polarProductId ? "pro" : "free";
-      const subscriptionId = (data.subscriptionId as string | undefined) ?? String(data.id);
-
-      const { error } = await updateSubscription(supabase,
-        {
-          user_id: user.id,
-          provider: "polar",
-          provider_subscription_id: subscriptionId,
-          plan,
-          status: "active",
-          current_period_end: null,
-          updated_at: new Date().toISOString(),
-        }
-      );
-
-      if (error) {
-        console.error("[polar webhook] Order upsert failed:", error);
-        return NextResponse.json({ error: "Database error" }, { status: 500 });
-      }
-
-      console.log("[polar webhook] Order paid:", data.id, "for user", user.id);
-      return NextResponse.json({ received: true }, { status: 200 });
+    if (type === "subscription.revoked") {
+      plan = "free";
+    } else if (type === "order.paid") {
+      plan = "pro";
+    } else {
+      const productId = getProductId(data);
+      const polarProductId = process.env.POLAR_PRODUCT_ID?.trim();
+      plan =
+        productId && polarProductId
+          ? productId === polarProductId
+            ? "pro"
+            : "free"
+          : "pro";
     }
 
-    console.log("[polar webhook] Unhandled event type:", type);
+    const subscription = {
+      user_id: userId,
+      provider: "polar",
+      provider_subscription_id: providerSubscriptionId,
+      plan,
+      status: status ?? String(data.status ?? "active"),
+      current_period_end: currentPeriodEnd,
+      updated_at: new Date().toISOString(),
+    };
+
+    const onConflict = providerSubscriptionId ? "provider_subscription_id" : "user_id";
+
+    const { error } = await supabase
+      .from("subscriptions")
+      .upsert(subscription, { onConflict });
+
+    if (error) {
+      console.error("[polar webhook] Upsert failed:", error.message);
+      return NextResponse.json({ error: "Database error" }, { status: 500 });
+    }
+
+    console.log("[polar webhook] Subscription updated for user:", userId);
+
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";

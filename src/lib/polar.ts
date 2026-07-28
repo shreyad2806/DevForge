@@ -3,7 +3,11 @@ import { Polar } from "@polar-sh/sdk";
 
 let cachedPolar: Polar | null = null;
 
-function ensureEnv(): { accessToken: string; productId: string; appUrl: string } {
+const SUPPORTED_SERVERS = ["sandbox", "production"] as const;
+
+type PolarServer = (typeof SUPPORTED_SERVERS)[number];
+
+function ensureEnv(): { accessToken: string; productId: string; appUrl: string; server: PolarServer } {
   const missing: string[] = [];
 
   const accessToken = process.env.POLAR_ACCESS_TOKEN?.trim() ?? "";
@@ -15,6 +19,16 @@ function ensureEnv(): { accessToken: string; productId: string; appUrl: string }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
   if (!appUrl) missing.push("NEXT_PUBLIC_APP_URL");
 
+  const rawServer = process.env.POLAR_SERVER?.trim() ?? "sandbox";
+  if (!SUPPORTED_SERVERS.includes(rawServer as PolarServer)) {
+    throw new Error(
+      `Invalid POLAR_SERVER value: "${rawServer}". ` +
+        `Supported values are: ${SUPPORTED_SERVERS.join(", ")}. ` +
+        `Please set POLAR_SERVER in your .env.local file.`
+    );
+  }
+  const server = rawServer as PolarServer;
+
   if (missing.length > 0) {
     throw new Error(
       `Missing required Polar environment variables: ${missing.join(", ")}. ` +
@@ -22,16 +36,17 @@ function ensureEnv(): { accessToken: string; productId: string; appUrl: string }
     );
   }
 
-  return { accessToken, productId, appUrl };
+  return { accessToken, productId, appUrl, server };
 }
 
 export function getPolarClient(): Polar {
   if (cachedPolar) return cachedPolar;
-  const { accessToken } = ensureEnv();
+  const { accessToken, server } = ensureEnv();
   cachedPolar = new Polar({
     accessToken,
-    server: "production",
+    server,
   });
+  console.log(`✓ Polar Server: ${server}`);
   return cachedPolar;
 }
 

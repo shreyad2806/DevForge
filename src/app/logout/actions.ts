@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 
 export async function logout() {
   const supabase = await createClient();
-  await supabase.auth.signOut({ scope: "global" });
-  redirect("/");
+  const { error } = await supabase.auth.signOut({ scope: "global" });
+
+  if (error) {
+    console.error("Logout error:", error.message);
+  }
+
+  redirect("/signin");
 }
